@@ -1,10 +1,11 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Geist } from "next/font/google"
+import { Geist, Geist_Mono } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
 
-const geist = Geist({ subsets: ["latin"] })
+const _geist = Geist({ subsets: ["latin"] })
+const _geistMono = Geist_Mono({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
   title: "(부천)혜광교회 | Hyegwang Church",
@@ -34,6 +35,7 @@ export const metadata: Metadata = {
     ],
     apple: "/apple-icon.png",
   },
+    generator: 'v0.app'
 }
 
 export default function RootLayout({
@@ -43,7 +45,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko">
-      <body className={`${geist.className} antialiased`}>
+      <body className={`font-sans antialiased`}>
         {children}
         <Analytics />
       </body>

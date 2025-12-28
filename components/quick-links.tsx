@@ -1,47 +1,47 @@
 import Link from "next/link"
-import { Church, Clock, FileText, Images, GraduationCap, Users, Heart } from "lucide-react"
+import { Church, Video, FileText, Images, BookOpen, Users, Heart, MapPin } from "lucide-react"
 
 const quickLinks = [
   {
     icon: Church,
     title: "교회소개",
     description: "혜광교회를 소개합니다",
-    href: "/about",
+    href: "/about/greeting",
     color: "bg-amber-500",
   },
   {
-    icon: Clock,
-    title: "예배안내",
-    description: "예배 시간 및 장소",
-    href: "/worship",
+    icon: Video,
+    title: "온라인예배",
+    description: "실시간 예배 참여",
+    href: "/worship/online",
     color: "bg-emerald-500",
   },
   {
     icon: FileText,
-    title: "교회주보",
+    title: "주보",
     description: "주간 소식 및 기도제목",
-    href: "/bulletin",
+    href: "/news/bulletin",
     color: "bg-sky-500",
   },
   {
     icon: Images,
-    title: "혜광갤러리",
+    title: "갤러리",
     description: "교회 사진 및 영상",
     href: "/gallery",
     color: "bg-rose-500",
   },
   {
-    icon: GraduationCap,
-    title: "주일학교",
+    icon: BookOpen,
+    title: "교회학교",
     description: "다음세대 교육",
     href: "/sunday-school",
     color: "bg-violet-500",
   },
   {
     icon: Users,
-    title: "양육 및 모임",
-    description: "소그룹 및 양육과정",
-    href: "/groups",
+    title: "성도의교제",
+    description: "은혜 나눔",
+    href: "/fellowship",
     color: "bg-orange-500",
   },
   {
@@ -51,13 +51,20 @@ const quickLinks = [
     href: "/offering",
     color: "bg-pink-500",
   },
+  {
+    icon: MapPin,
+    title: "오시는길",
+    description: "교회 위치 안내",
+    href: "/about/location",
+    color: "bg-teal-500",
+  },
 ]
 
 export function QuickLinks() {
   return (
     <section className="relative -mt-16 z-20 px-4 pb-16">
       <div className="container mx-auto">
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-8">
           {quickLinks.map((link) => (
             <Link
               key={link.title}

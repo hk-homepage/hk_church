@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Church, Youtube, Facebook, Instagram } from "lucide-react"
+import { Church, Youtube, MessageCircle } from "lucide-react"
 
 export function Footer() {
   return (
@@ -15,6 +15,7 @@ export function Footer() {
                 <span className="text-xs text-muted-foreground">Hyegwang Church</span>
               </div>
             </Link>
+            <p className="mb-2 text-sm text-muted-foreground">대한예수교장로회(고신) 경기서부노회</p>
             <p className="mb-4 text-sm text-muted-foreground leading-relaxed">
               다음세대가 춤추는 교회, 혜광교회입니다.
               <br />
@@ -30,18 +31,12 @@ export function Footer() {
                 <Youtube className="h-5 w-5" />
               </Link>
               <Link
-                href="#"
+                href="https://cafe.naver.com"
+                target="_blank"
                 className="flex h-10 w-10 items-center justify-center rounded-full bg-card text-muted-foreground transition-colors hover:bg-primary hover:text-primary-foreground"
-                aria-label="페이스북"
+                aria-label="네이버 카페"
               >
-                <Facebook className="h-5 w-5" />
-              </Link>
-              <Link
-                href="#"
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-card text-muted-foreground transition-colors hover:bg-primary hover:text-primary-foreground"
-                aria-label="인스타그램"
-              >
-                <Instagram className="h-5 w-5" />
+                <MessageCircle className="h-5 w-5" />
               </Link>
             </div>
           </div>
@@ -51,23 +46,23 @@ export function Footer() {
             <h3 className="mb-4 font-semibold text-foreground">바로가기</h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>
-                <Link href="/about" className="transition-colors hover:text-primary">
+                <Link href="/about/greeting" className="transition-colors hover:text-primary">
                   교회소개
                 </Link>
               </li>
               <li>
-                <Link href="/worship" className="transition-colors hover:text-primary">
+                <Link href="/about/worship-info" className="transition-colors hover:text-primary">
                   예배안내
                 </Link>
               </li>
               <li>
-                <Link href="/bulletin" className="transition-colors hover:text-primary">
-                  교회주보
+                <Link href="/news/bulletin" className="transition-colors hover:text-primary">
+                  주보
                 </Link>
               </li>
               <li>
                 <Link href="/gallery" className="transition-colors hover:text-primary">
-                  혜광갤러리
+                  갤러리
                 </Link>
               </li>
               <li>
@@ -78,19 +73,20 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Contact */}
+          {/* Contact - 실제 교회 정보로 업데이트 */}
           <div>
             <h3 className="mb-4 font-semibold text-foreground">연락처</h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>경기도 부천시 원미구</li>
               <li>상이로51번길 30</li>
-              <li className="pt-2">Tel: 032-XXX-XXXX</li>
+              <li className="pt-2">Tel: 032-327-5547</li>
+              <li>Email: ihkchurch@naver.com</li>
             </ul>
           </div>
         </div>
 
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-border pt-8 text-sm text-muted-foreground md:flex-row">
-          <p>© 2025 (부천)혜광교회. All rights reserved.</p>
+          <p>© 2025 (부천)혜광교회. All rights reserved. 설립일: 1991년 3월 3일</p>
           <div className="flex gap-4">
             <Link href="/privacy" className="transition-colors hover:text-primary">
               개인정보처리방침
