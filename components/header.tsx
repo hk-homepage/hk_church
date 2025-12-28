@@ -13,6 +13,7 @@ import {
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu"
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 
 const menuItems = [
   {
@@ -20,44 +21,54 @@ const menuItems = [
     href: "/about",
     submenu: [
       { title: "인사말", href: "/about/greeting" },
-      { title: "비전", href: "/about/vision" },
+      { title: "예배안내", href: "/about/worship-info" },
       { title: "섬기는 분들", href: "/about/staff" },
+      { title: "실시간 온라인 예배", href: "/worship/online" },
+      { title: "온라인 헌금", href: "/offering" },
+      { title: "시설소개", href: "/about/facilities" },
+      { title: "교회연혁", href: "/about/history" },
       { title: "오시는 길", href: "/about/location" },
     ],
   },
   {
-    title: "예배안내",
-    href: "/worship",
-    submenu: [
-      { title: "예배시간", href: "/worship/schedule" },
-      { title: "온라인예배", href: "/worship/online" },
-      { title: "설교말씀", href: "/worship/sermons" },
-    ],
-  },
-  {
-    title: "교회주보",
-    href: "/bulletin",
-  },
-  {
-    title: "혜광갤러리",
-    href: "/gallery",
-  },
-  {
-    title: "주일학교",
+    title: "교회학교",
     href: "/sunday-school",
-  },
-  {
-    title: "양육 및 모임",
-    href: "/groups",
     submenu: [
-      { title: "새가족 양육", href: "/groups/newcomers" },
-      { title: "성경통독반", href: "/groups/bible-reading" },
-      { title: "소그룹 모임", href: "/groups/small-groups" },
+      { title: "유치부", href: "/sunday-school/kindergarten" },
+      { title: "초등부", href: "/sunday-school/elementary" },
+      { title: "중고등부", href: "/sunday-school/youth" },
+      { title: "대학청년부", href: "/sunday-school/college" },
+      { title: "2024 이전", href: "/sunday-school/archive-2024" },
     ],
   },
   {
-    title: "온라인헌금",
-    href: "/offering",
+    title: "양육/모임",
+    href: "/nurturing",
+    submenu: [
+      { title: "교회교육", href: "/nurturing/education" },
+      { title: "2025년 암송구절", href: "/nurturing/memory-verse-2025" },
+      { title: "성경통신문제", href: "/nurturing/bible-study" },
+      { title: "오늘의 묵상", href: "/nurturing/devotion" },
+    ],
+  },
+  {
+    title: "교회소식",
+    href: "/news",
+    submenu: [
+      { title: "공지사항", href: "/news/announcements" },
+      { title: "주보", href: "/news/bulletin" },
+      { title: "새가족 소개", href: "/news/new-members" },
+      { title: "혜광 갤러리", href: "/gallery" },
+    ],
+  },
+  {
+    title: "성도의교제",
+    href: "/fellowship",
+    submenu: [
+      { title: "은혜 나눔", href: "/fellowship/testimonies" },
+      { title: "감사 나눔", href: "/fellowship/thanksgiving" },
+      { title: "일상 나눔", href: "/fellowship/daily" },
+    ],
   },
 ]
 
@@ -87,7 +98,7 @@ export function Header() {
                       {item.title}
                     </NavigationMenuTrigger>
                     <NavigationMenuContent>
-                      <ul className="grid w-48 gap-1 p-2">
+                      <ul className="grid w-56 gap-1 p-2">
                         {item.submenu.map((subItem) => (
                           <li key={subItem.title}>
                             <NavigationMenuLink asChild>
@@ -120,17 +131,23 @@ export function Header() {
 
         {/* Desktop Actions */}
         <div className="hidden items-center gap-2 lg:flex">
-          <Button variant="ghost" size="sm" className="text-foreground">
-            <Calendar className="mr-2 h-4 w-4" />
-            일정
+          <Button variant="ghost" size="sm" className="text-foreground" asChild>
+            <Link href="/calendar">
+              <Calendar className="mr-2 h-4 w-4" />
+              일정
+            </Link>
           </Button>
-          <Button variant="ghost" size="sm" className="text-foreground">
-            <MessageSquare className="mr-2 h-4 w-4" />
-            카페
+          <Button variant="ghost" size="sm" className="text-foreground" asChild>
+            <Link href="https://cafe.naver.com" target="_blank">
+              <MessageSquare className="mr-2 h-4 w-4" />
+              카페
+            </Link>
           </Button>
-          <Button variant="outline" size="sm">
-            <LogIn className="mr-2 h-4 w-4" />
-            로그인
+          <Button variant="outline" size="sm" asChild>
+            <Link href="/login">
+              <LogIn className="mr-2 h-4 w-4" />
+              로그인
+            </Link>
           </Button>
         </div>
 
@@ -142,48 +159,56 @@ export function Header() {
               <span className="sr-only">메뉴 열기</span>
             </Button>
           </SheetTrigger>
-          <SheetContent side="right" className="w-80 bg-background">
+          <SheetContent side="right" className="w-80 overflow-y-auto bg-background">
             <SheetTitle className="sr-only">메뉴</SheetTitle>
             <div className="flex flex-col gap-6 pt-6">
               <div className="flex items-center gap-2">
                 <Church className="h-8 w-8 text-primary" />
                 <span className="text-lg font-bold text-foreground">혜광교회</span>
               </div>
-              <nav className="flex flex-col gap-1">
-                {menuItems.map((item) => (
-                  <div key={item.title}>
-                    <Link
-                      href={item.href}
-                      className="block rounded-md px-3 py-2 text-base font-medium text-foreground hover:bg-accent"
-                      onClick={() => setIsOpen(false)}
-                    >
+
+              <Accordion type="single" collapsible className="w-full">
+                {menuItems.map((item, index) => (
+                  <AccordionItem key={item.title} value={`item-${index}`}>
+                    <AccordionTrigger className="text-base font-medium text-foreground hover:no-underline">
                       {item.title}
-                    </Link>
-                    {item.submenu && (
-                      <div className="ml-4 flex flex-col gap-1">
-                        {item.submenu.map((subItem) => (
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="flex flex-col gap-1 pl-2">
+                        {item.submenu?.map((subItem) => (
                           <Link
                             key={subItem.title}
                             href={subItem.href}
-                            className="block rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-accent hover:text-foreground"
+                            className="rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
                             onClick={() => setIsOpen(false)}
                           >
                             {subItem.title}
                           </Link>
                         ))}
                       </div>
-                    )}
-                  </div>
+                    </AccordionContent>
+                  </AccordionItem>
                 ))}
-              </nav>
+              </Accordion>
+
               <div className="flex flex-col gap-2 border-t border-border pt-4">
-                <Button variant="outline" className="justify-start bg-transparent">
-                  <LogIn className="mr-2 h-4 w-4" />
-                  로그인
+                <Button variant="outline" className="justify-start bg-transparent" asChild>
+                  <Link href="/login" onClick={() => setIsOpen(false)}>
+                    <LogIn className="mr-2 h-4 w-4" />
+                    로그인
+                  </Link>
                 </Button>
-                <Button variant="outline" className="justify-start bg-transparent">
-                  <User className="mr-2 h-4 w-4" />
-                  회원가입
+                <Button variant="outline" className="justify-start bg-transparent" asChild>
+                  <Link href="/signup" onClick={() => setIsOpen(false)}>
+                    <User className="mr-2 h-4 w-4" />
+                    회원가입
+                  </Link>
+                </Button>
+                <Button variant="outline" className="justify-start bg-transparent" asChild>
+                  <Link href="/calendar" onClick={() => setIsOpen(false)}>
+                    <Calendar className="mr-2 h-4 w-4" />
+                    일정
+                  </Link>
                 </Button>
               </div>
             </div>
