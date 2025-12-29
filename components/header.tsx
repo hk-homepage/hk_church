@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Menu, Church, User, Calendar, MessageSquare, LogIn } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -19,6 +20,7 @@ const menuItems = [
   {
     title: "교회소개",
     href: "/about",
+    defaultHref: "/about/greeting", // 메뉴 클릭 시 인사말로 이동
     submenu: [
       { title: "인사말", href: "/about/greeting" },
       { title: "예배안내", href: "/about/worship-info" },
@@ -33,6 +35,7 @@ const menuItems = [
   {
     title: "교회학교",
     href: "/sunday-school",
+    defaultHref: "/sunday-school/kindergarten", // 메뉴 클릭 시 유치부로 이동
     submenu: [
       { title: "유치부", href: "/sunday-school/kindergarten" },
       { title: "초등부", href: "/sunday-school/elementary" },
@@ -44,6 +47,7 @@ const menuItems = [
   {
     title: "양육/모임",
     href: "/nurturing",
+    defaultHref: "/nurturing/education", // 메뉴 클릭 시 교회교육으로 이동
     submenu: [
       { title: "교회교육", href: "/nurturing/education" },
       { title: "2025년 암송구절", href: "/nurturing/memory-verse-2025" },
@@ -54,6 +58,7 @@ const menuItems = [
   {
     title: "교회소식",
     href: "/news",
+    defaultHref: "/news/announcements", // 메뉴 클릭 시 공지사항으로 이동
     submenu: [
       { title: "공지사항", href: "/news/announcements" },
       { title: "주보", href: "/news/bulletin" },
@@ -64,6 +69,7 @@ const menuItems = [
   {
     title: "성도의교제",
     href: "/fellowship",
+    defaultHref: "/fellowship/grace", // 메뉴 클릭 시 은혜 나눔으로 이동
     submenu: [
       { title: "은혜 나눔", href: "/fellowship/grace" },
       { title: "감사 나눔", href: "/fellowship/thanks" },
@@ -74,6 +80,11 @@ const menuItems = [
 
 export function Header() {
   const [isOpen, setIsOpen] = useState(false)
+  const router = useRouter()
+
+  const handleMenuClick = (href: string) => {
+    router.push(href)
+  }
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -94,7 +105,16 @@ export function Header() {
               <NavigationMenuItem key={item.title}>
                 {item.submenu ? (
                   <>
-                    <NavigationMenuTrigger className="bg-transparent text-foreground hover:bg-accent">
+                    <NavigationMenuTrigger
+                      className="bg-transparent text-foreground hover:bg-accent"
+                      onClick={(e) => {
+                        // 드롭다운 아이콘 클릭이 아닌 경우에만 리다이렉트
+                        const target = e.target as HTMLElement
+                        if (!target.closest('svg')) {
+                          handleMenuClick(item.defaultHref || item.href)
+                        }
+                      }}
+                    >
                       {item.title}
                     </NavigationMenuTrigger>
                     <NavigationMenuContent>
