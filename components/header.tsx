@@ -65,8 +65,8 @@ const menuItems = [
     title: "성도의교제",
     href: "/fellowship",
     submenu: [
-      { title: "은혜 나눔", href: "/fellowship/testimonies" },
-      { title: "감사 나눔", href: "/fellowship/thanksgiving" },
+      { title: "은혜 나눔", href: "/fellowship/grace" },
+      { title: "감사 나눔", href: "/fellowship/thanks" },
       { title: "일상 나눔", href: "/fellowship/daily" },
     ],
   },
