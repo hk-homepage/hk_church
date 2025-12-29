@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation"
 
 export default function FellowshipPage() {
-  redirect("/fellowship/testimonies")
+  redirect("/fellowship/grace")
 }
