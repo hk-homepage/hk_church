@@ -1,3 +1,4 @@
+// Homepage grid of quick access links
 import Link from "next/link"
 import { Church, Video, FileText, Images, BookOpen, Users, Heart, MapPin } from "lucide-react"
 

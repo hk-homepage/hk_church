@@ -1,3 +1,4 @@
+// Next-themes provider wrapper for dark mode support
 'use client'
 
 import * as React from 'react'

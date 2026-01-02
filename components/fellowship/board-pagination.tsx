@@ -1,3 +1,4 @@
+// Page navigation controls for board lists
 'use client'
 
 import Link from 'next/link'

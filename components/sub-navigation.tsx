@@ -1,3 +1,4 @@
+// Tab navigation for section subpages
 "use client"
 
 import Link from "next/link"
