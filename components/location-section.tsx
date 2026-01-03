@@ -1,3 +1,4 @@
+// Homepage section with map and church address
 import { MapPin, Phone, Clock } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 

@@ -1,3 +1,4 @@
+// Main site header with navigation menu and mobile hamburger
 "use client"
 
 import { useState } from "react"

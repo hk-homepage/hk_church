@@ -1,3 +1,4 @@
+// Table of fellowship posts with header row
 import type { FellowshipPostListItem, BoardCategory } from '@/types/fellowship'
 import { BoardItem } from './board-item'
 

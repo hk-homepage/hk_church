@@ -1,3 +1,4 @@
+// Site footer with contact info, links, and social media
 import Link from "next/link"
 import { Church, Youtube, MessageCircle } from "lucide-react"
 

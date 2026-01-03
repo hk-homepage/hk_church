@@ -1,7 +1,9 @@
+// Full post detail view with content and attachments
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { Eye, Calendar, User, Paperclip, Download } from 'lucide-react'
 import type { FellowshipPost } from '@/types/fellowship'
+import { MarkdownContent } from '@/lib/utils/markdown'
 
 interface BoardDetailProps {
     post: FellowshipPost
@@ -50,9 +52,9 @@ export function BoardDetail({ post }: BoardDetailProps) {
                 )}
 
                 {/* 내용 */}
-                <div
+                <MarkdownContent
+                    content={post.content}
                     className="prose prose-gray dark:prose-invert max-w-none"
-                    dangerouslySetInnerHTML={{ __html: post.content }}
                 />
 
                 {/* 첨부파일 */}

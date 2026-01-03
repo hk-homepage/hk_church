@@ -1,3 +1,4 @@
+// Board title and description header
 import type { BoardCategory } from '@/types/fellowship'
 import { getBoardConfig } from '@/lib/constants/fellowship'
 

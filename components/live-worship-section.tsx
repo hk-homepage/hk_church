@@ -1,3 +1,4 @@
+// Homepage section for live/online worship access
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Play, ExternalLink } from "lucide-react"

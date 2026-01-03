@@ -1,3 +1,4 @@
+// Homepage hero carousel with rotating banner images
 "use client"
 
 import { useState, useEffect } from "react"

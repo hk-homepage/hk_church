@@ -1,4 +1,4 @@
-// 게시판 카테고리 타입
+// TypeScript types for fellowship board system
 export type BoardCategory = 'grace' | 'thanks' | 'daily'
 
 export interface FellowshipCategory {

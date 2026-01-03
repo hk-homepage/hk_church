@@ -1,3 +1,4 @@
+// Loading skeleton for board list
 export function BoardSkeleton() {
     return (
         <div className="space-y-4">

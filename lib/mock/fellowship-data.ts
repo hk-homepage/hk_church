@@ -1,6 +1,5 @@
+// Mock data generators for fellowship posts (temporary until Supabase)
 import type { FellowshipPostListItem, FellowshipPost, BoardCategory } from '@/types/fellowship'
-
-// Mock 데이터 생성 함수
 export function generateMockPosts(category: BoardCategory, count: number = 50): FellowshipPostListItem[] {
     const posts: FellowshipPostListItem[] = []
 
@@ -80,19 +79,21 @@ export function generateMockPostDetail(id: string, category: BoardCategory): Fel
     return {
         ...listItem,
         category_slug: category,
-        content: `
-      <p>이것은 ${listItem.title}의 본문 내용입니다.</p>
-      <p>하나님께서 주신 은혜에 감사드립니다.</p>
-      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
-      <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
-      <h3>주요 내용</h3>
-      <ul>
-        <li>첫 번째 항목</li>
-        <li>두 번째 항목</li>
-        <li>세 번째 항목</li>
-      </ul>
-      <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</p>
-    `,
+        content: `이것은 ${listItem.title}의 본문 내용입니다.
+
+하나님께서 주신 은혜에 감사드립니다.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+
+### 주요 내용
+
+- 첫 번째 항목
+- 두 번째 항목
+- 세 번째 항목
+
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.`,
         author_id: 'mock-user-id',
         is_featured: Math.random() > 0.8,
         attachments: listItem.has_attachments ? [
