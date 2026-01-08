@@ -1,8 +1,5 @@
-import Image from "next/image"
 import { PageHeader } from "@/components/page-header"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Download, Calendar } from "lucide-react"
+import { BulletinGrid } from "@/components/bulletin-grid"
 
 export const metadata = {
   title: "주보 | 혜광교회",
@@ -47,33 +44,7 @@ export default function BulletinPage() {
       <section className="py-16">
         <div className="container mx-auto px-4">
           <div className="mx-auto max-w-5xl">
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              {bulletins.map((bulletin) => (
-                <Card key={bulletin.id} className="overflow-hidden transition-shadow hover:shadow-lg">
-                  <div className="relative aspect-[3/4]">
-                    <Image
-                      src={bulletin.image || "/placeholder.svg"}
-                      alt={bulletin.title}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-                  <CardHeader className="pb-2">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Calendar className="h-4 w-4" />
-                      {bulletin.date}
-                    </div>
-                    <CardTitle className="text-base">{bulletin.title}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <Button variant="outline" size="sm" className="w-full bg-transparent">
-                      <Download className="mr-2 h-4 w-4" />
-                      다운로드
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+            <BulletinGrid bulletins={bulletins} />
           </div>
         </div>
       </section>
