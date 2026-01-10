@@ -3,39 +3,41 @@ import Link from 'next/link'
 import { ArrowLeft, List } from 'lucide-react'
 import { notFound } from 'next/navigation'
 import { BoardDetail } from '@/components/board-detail'
-import { generateMockPostDetail } from '@/lib/mock/fellowship-data'
+import { generateAnnouncementDetail } from '@/lib/mock/announcements-data'
 
-const CATEGORY = 'daily' as const
+// SSR (Server-Side Rendering) 사용
+// 매 요청마다 최신 데이터를 가져와서 렌더링
+export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-    title: '일상 나눔 | 혜광교회',
-    description: '일상의 소소한 이야기를 나누는 공간입니다',
+    title: '공지사항 | 혜광교회',
+    description: '혜광교회 공지사항',
 }
 
 interface PageProps {
     params: Promise<{ id: string }>
 }
 
-export default async function DailyDetailPage({ params }: PageProps) {
+export default async function AnnouncementDetailPage({ params }: PageProps) {
     const { id } = await params
 
     // Mock 데이터 가져오기 (실제로는 Supabase에서 가져옴)
     try {
-        const post = generateMockPostDetail(id, CATEGORY)
+        const post = generateAnnouncementDetail(id)
 
         return (
             <div className="container mx-auto px-4 py-8 max-w-4xl">
                 {/* 상단 네비게이션 */}
                 <div className="flex items-center justify-between mb-6">
                     <Link
-                        href="/fellowship/daily"
+                        href="/news/announcements"
                         className="inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
                     >
                         <ArrowLeft className="w-4 h-4" />
                         <span>목록으로</span>
                     </Link>
                     <Link
-                        href="/fellowship/daily"
+                        href="/news/announcements"
                         className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                     >
                         <List className="w-4 h-4" />
@@ -49,7 +51,7 @@ export default async function DailyDetailPage({ params }: PageProps) {
                 {/* 하단 네비게이션 */}
                 <div className="mt-8 flex justify-center">
                     <Link
-                        href="/fellowship/daily"
+                        href="/news/announcements"
                         className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
                     >
                         <List className="w-4 h-4" />

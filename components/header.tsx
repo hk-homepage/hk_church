@@ -64,7 +64,7 @@ const menuItems = [
       { title: "공지사항", href: "/news/announcements" },
       { title: "주보", href: "/news/bulletin" },
       { title: "새가족 소개", href: "/news/new-members" },
-      { title: "혜광 갤러리", href: "/gallery" },
+      { title: "혜광 갤러리", href: "/news/gallery" },
     ],
   },
   {

@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ArrowLeft, List } from 'lucide-react'
 import { notFound } from 'next/navigation'
-import { BoardDetail } from '@/components/fellowship/board-detail'
+import { BoardDetail } from '@/components/board-detail'
 import { generateMockPostDetail } from '@/lib/mock/fellowship-data'
 
 const CATEGORY = 'grace' as const

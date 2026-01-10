@@ -60,14 +60,14 @@ export default function GalleryPage() {
       <PageHeader
         title="혜광 갤러리"
         description="혜광교회의 아름다운 순간들을 담았습니다"
-        breadcrumb={[{ label: "혜광 갤러리" }]}
+        breadcrumb={[{ label: "교회소식", href: "/news" }, { label: "혜광 갤러리" }]}
       />
       <section className="py-16">
         <div className="container mx-auto px-4">
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {galleries.map((gallery) => (
               <Card key={gallery.id} className="group overflow-hidden transition-shadow hover:shadow-lg">
-                <Link href={`/gallery/${gallery.id}`}>
+                <Link href={`/news/gallery/${gallery.id}`}>
                   <div className="relative aspect-video overflow-hidden">
                     <Image
                       src={gallery.thumbnail || "/placeholder.svg"}
