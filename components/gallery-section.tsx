@@ -41,7 +41,7 @@ export function GallerySection() {
             <h2 className="text-3xl font-bold text-foreground md:text-4xl">혜광 갤러리</h2>
           </div>
           <Button variant="outline" asChild>
-            <Link href="/gallery">
+            <Link href="/news/gallery">
               전체보기
               <ChevronRight className="ml-1 h-4 w-4" />
             </Link>
@@ -52,7 +52,7 @@ export function GallerySection() {
           {galleryItems.map((item) => (
             <Link
               key={item.id}
-              href={`/gallery/${item.id}`}
+              href={`/news/gallery/${item.id}`}
               className="group overflow-hidden rounded-2xl bg-card shadow-md transition-all hover:-translate-y-1 hover:shadow-xl"
             >
               <div className="relative aspect-[4/3] overflow-hidden">

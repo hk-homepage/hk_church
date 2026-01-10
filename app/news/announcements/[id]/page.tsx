@@ -5,6 +5,10 @@ import { notFound } from 'next/navigation'
 import { BoardDetail } from '@/components/board-detail'
 import { generateAnnouncementDetail } from '@/lib/mock/announcements-data'
 
+// SSR (Server-Side Rendering) 사용
+// 매 요청마다 최신 데이터를 가져와서 렌더링
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
     title: '공지사항 | 혜광교회',
     description: '혜광교회 공지사항',

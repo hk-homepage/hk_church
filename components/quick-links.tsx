@@ -28,7 +28,7 @@ const quickLinks = [
     icon: Images,
     title: "갤러리",
     description: "교회 사진 및 영상",
-    href: "/gallery",
+    href: "/news/gallery",
     color: "bg-rose-500",
   },
   {
