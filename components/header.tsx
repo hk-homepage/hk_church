@@ -1,11 +1,13 @@
 // Main site header with navigation menu and mobile hamburger
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Menu, Church, User, Calendar, MessageSquare, LogIn } from "lucide-react"
+import { Menu, Church, User, Calendar, MessageSquare, LogIn, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { createClient } from "@/lib/supabase/client"
+import { logoutAction } from "@/app/actions/auth"
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -81,7 +83,55 @@ const menuItems = [
 
 export function Header() {
   const [isOpen, setIsOpen] = useState(false)
+  const [user, setUser] = useState<{ name?: string; userId?: string } | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
+
+  useEffect(() => {
+    // 사용자 정보 가져오기
+    const supabase = createClient()
+    
+    const getUser = async () => {
+      const { data: { user: authUser } } = await supabase.auth.getUser()
+      
+      if (authUser) {
+        // 프로필 정보 가져오기
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('name, user_id')
+          .eq('id', authUser.id)
+          .single()
+        
+        if (profile) {
+          setUser({
+            name: profile.name || undefined,
+            userId: profile.user_id || undefined,
+          })
+        }
+      } else {
+        setUser(null)
+      }
+      setIsLoading(false)
+    }
+
+    getUser()
+
+    // 인증 상태 변경 감지
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+      getUser()
+    })
+
+    return () => {
+      subscription.unsubscribe()
+    }
+  }, [])
+
+  const handleLogout = async () => {
+    await logoutAction()
+    setUser(null)
+    // 페이지 새로고침
+    window.location.href = '/'
+  }
 
   const handleMenuClick = (href: string) => {
     router.push(href)
@@ -164,12 +214,24 @@ export function Header() {
               카페
             </Link>
           </Button>
-          <Button variant="outline" size="sm" asChild>
-            <Link href="/login">
-              <LogIn className="mr-2 h-4 w-4" />
-              로그인
-            </Link>
-          </Button>
+          {!isLoading && (
+            user ? (
+              <>
+                <span className="text-sm text-muted-foreground">{user.name || user.userId}님</span>
+                <Button variant="outline" size="sm" onClick={handleLogout}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  로그아웃
+                </Button>
+              </>
+            ) : (
+              <Button variant="outline" size="sm" asChild>
+                <Link href="/login">
+                  <LogIn className="mr-2 h-4 w-4" />
+                  로그인
+                </Link>
+              </Button>
+            )
+          )}
         </div>
 
         {/* Mobile Menu */}
@@ -213,18 +275,41 @@ export function Header() {
               </Accordion>
 
               <div className="flex flex-col gap-2 border-t border-border pt-4">
-                <Button variant="outline" className="justify-start bg-transparent" asChild>
-                  <Link href="/login" onClick={() => setIsOpen(false)}>
-                    <LogIn className="mr-2 h-4 w-4" />
-                    로그인
-                  </Link>
-                </Button>
-                <Button variant="outline" className="justify-start bg-transparent" asChild>
-                  <Link href="/signup" onClick={() => setIsOpen(false)}>
-                    <User className="mr-2 h-4 w-4" />
-                    회원가입
-                  </Link>
-                </Button>
+                {!isLoading && (
+                  user ? (
+                    <>
+                      <div className="px-3 py-2 text-sm text-muted-foreground">
+                        {user.name || user.userId}님
+                      </div>
+                      <Button 
+                        variant="outline" 
+                        className="justify-start bg-transparent" 
+                        onClick={async () => {
+                          await handleLogout()
+                          setIsOpen(false)
+                        }}
+                      >
+                        <LogOut className="mr-2 h-4 w-4" />
+                        로그아웃
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button variant="outline" className="justify-start bg-transparent" asChild>
+                        <Link href="/login" onClick={() => setIsOpen(false)}>
+                          <LogIn className="mr-2 h-4 w-4" />
+                          로그인
+                        </Link>
+                      </Button>
+                      <Button variant="outline" className="justify-start bg-transparent" asChild>
+                        <Link href="/signup" onClick={() => setIsOpen(false)}>
+                          <User className="mr-2 h-4 w-4" />
+                          회원가입
+                        </Link>
+                      </Button>
+                    </>
+                  )
+                )}
                 <Button variant="outline" className="justify-start bg-transparent" asChild>
                   <Link href="/calendar" onClick={() => setIsOpen(false)}>
                     <Calendar className="mr-2 h-4 w-4" />
