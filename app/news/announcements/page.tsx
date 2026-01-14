@@ -2,7 +2,10 @@ import Link from "next/link"
 import { PageHeader } from "@/components/page-header"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Calendar, Eye } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Calendar, Eye, Plus } from "lucide-react"
+import { getCurrentUser } from "@/app/actions/auth"
+import { isAdmin } from "@/lib/utils/permissions"
 
 export const metadata = {
   title: "공지사항 | 혜광교회",
@@ -47,7 +50,10 @@ const announcements = [
   },
 ]
 
-export default function AnnouncementsPage() {
+export default async function AnnouncementsPage() {
+  const user = await getCurrentUser()
+  const canCreate = isAdmin(user)
+
   return (
     <>
       <PageHeader
@@ -58,6 +64,16 @@ export default function AnnouncementsPage() {
       <section className="py-16">
         <div className="container mx-auto px-4">
           <div className="mx-auto max-w-4xl">
+            {canCreate && (
+              <div className="mb-6 flex justify-end">
+                <Button asChild>
+                  <Link href="/news/announcements/new">
+                    <Plus className="h-4 w-4" />
+                    공지사항 작성
+                  </Link>
+                </Button>
+              </div>
+            )}
             <div className="space-y-4">
               {announcements.map((item) => (
                 <Card key={item.id} className="transition-shadow hover:shadow-md">
