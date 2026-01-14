@@ -26,22 +26,29 @@ export function AnnouncementForm() {
     setIsLoading(true)
 
     try {
+      console.log('공지사항 작성 시작...', { title: formData.title })
+      
       const result = await createNotice({
         title: formData.title,
         content: formData.content,
         is_pinned: formData.is_pinned,
       })
 
-      if (result.success && result.id) {
-        router.push(`/news/announcements/${result.id}`)
-        router.refresh()
+      console.log('Create notice result:', result)
+
+      if (result.success) {
+        console.log('공지사항 작성 성공, 목록 페이지로 이동...')
+        // 목록 페이지로 이동 (강제 새로고침)
+        window.location.href = '/news/announcements'
+        return // 이동하므로 아래 코드 실행 안 됨
       } else {
+        console.error('공지사항 작성 실패:', result.error)
         setError(result.error || '공지사항 작성에 실패했습니다.')
+        setIsLoading(false)
       }
     } catch (err) {
-      setError('공지사항 작성 중 오류가 발생했습니다.')
       console.error('Submit error:', err)
-    } finally {
+      setError('공지사항 작성 중 오류가 발생했습니다.')
       setIsLoading(false)
     }
   }

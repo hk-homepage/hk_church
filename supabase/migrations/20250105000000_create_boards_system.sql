@@ -15,6 +15,19 @@ END $$;
 -- 게시판 가시성 타입
 CREATE TYPE board_visibility AS ENUM ('PUBLIC', 'PRIVATE');
 
+-- posts 테이블에 is_pinned 컬럼 추가 (이미 있으면 무시됨)
+DO $$ 
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'posts') THEN
+        IF NOT EXISTS (
+            SELECT 1 FROM information_schema.columns 
+            WHERE table_name = 'posts' AND column_name = 'is_pinned'
+        ) THEN
+            ALTER TABLE posts ADD COLUMN is_pinned BOOLEAN DEFAULT FALSE;
+        END IF;
+    END IF;
+END $$;
+
 -- 게시판 테이블 (계층 구조 지원)
 CREATE TABLE boards (
     board_id BIGSERIAL PRIMARY KEY,
@@ -39,6 +52,7 @@ CREATE TABLE posts (
     content TEXT NOT NULL,
     author_ip VARCHAR(45),
     is_notice BOOLEAN DEFAULT FALSE,
+    is_pinned BOOLEAN DEFAULT FALSE, -- 상단 고정
     view_count INT DEFAULT 0,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
@@ -101,6 +115,7 @@ CREATE INDEX idx_posts_board ON posts(board_id);
 CREATE INDEX idx_posts_author ON posts(author_user_id);
 CREATE INDEX idx_posts_created ON posts(created_at DESC);
 CREATE INDEX idx_posts_notice ON posts(is_notice, created_at DESC) WHERE is_notice = TRUE;
+CREATE INDEX idx_posts_pinned ON posts(is_pinned, created_at DESC) WHERE is_pinned = TRUE;
 CREATE INDEX idx_posts_deleted ON posts(deleted_at) WHERE deleted_at IS NULL;
 CREATE INDEX idx_comments_post ON comments(post_id);
 CREATE INDEX idx_comments_author ON comments(author_user_id);
@@ -141,6 +156,19 @@ USING (deleted_at IS NULL);
 CREATE POLICY "Authenticated users can create posts"
 ON posts FOR INSERT
 WITH CHECK (auth.uid() IS NOT NULL AND auth.uid() = author_user_id);
+
+-- 관리자는 공지사항(is_notice = TRUE) 작성 가능
+CREATE POLICY "Admins can create notices"
+ON posts FOR INSERT
+WITH CHECK (
+  auth.uid() IS NOT NULL 
+  AND auth.uid() = author_user_id
+  AND is_notice = TRUE
+  AND EXISTS (
+    SELECT 1 FROM profiles
+    WHERE id = auth.uid() AND role = 'admin'
+  )
+);
 
 -- 작성자만 자신의 게시물 수정 가능
 CREATE POLICY "Authors can update their posts"
@@ -281,3 +309,8 @@ BEGIN
     WHERE comment_id = p_comment_id AND deleted_at IS NULL;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 공지사항 게시판 초기 데이터 (공지사항 전용 게시판)
+INSERT INTO boards (name, visibility, sort_order) 
+VALUES ('공지사항', 'PUBLIC', 0)
+ON CONFLICT DO NOTHING;
