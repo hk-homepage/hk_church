@@ -140,7 +140,7 @@ export async function getNotices(page: number = 1, limit: number = 10) {
     const to = from + limit - 1
 
     // 공지사항 게시판의 is_notice = TRUE인 게시물만 가져오기
-    const { data, error, count } = await supabase
+    const { data: posts, error, count } = await supabase
       .from('posts')
       .select('*', { count: 'exact' })
       .eq('board_id', noticeBoard.board_id)
@@ -160,12 +160,30 @@ export async function getNotices(page: number = 1, limit: number = 10) {
       }
     }
 
+    // 작성자 정보 별도 조회 (배치로 가져오기)
+    const authorIds = [...new Set((posts || []).map((post: any) => post.author_user_id).filter(Boolean))]
+    const authorNamesMap: Record<string, string> = {}
+    
+    if (authorIds.length > 0) {
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, name')
+        .in('id', authorIds)
+      
+      if (profiles) {
+        profiles.forEach((profile) => {
+          authorNamesMap[profile.id] = profile.name || '관리자'
+        })
+      }
+    }
+
     // posts 테이블 구조를 notices와 호환되도록 변환
-    const notices = (data || []).map((post: any) => ({
+    const notices = (posts || []).map((post: any) => ({
       id: post.post_id.toString(),
       title: post.title,
       content: post.content,
       author_id: post.author_user_id,
+      author_name: authorNamesMap[post.author_user_id] || '관리자',
       is_pinned: post.is_pinned || false,
       view_count: post.view_count || 0,
       created_at: post.created_at,
@@ -224,6 +242,20 @@ export async function getNotice(id: string, incrementView: boolean = true) {
       }
     }
 
+    // 작성자 정보 별도 조회
+    let authorName = '관리자'
+    if (post.author_user_id) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('name')
+        .eq('id', post.author_user_id)
+        .single()
+      
+      if (profile) {
+        authorName = profile.name || '관리자'
+      }
+    }
+
     // 조회수 증가 (옵션)
     if (incrementView) {
       await supabase.rpc('increment_post_view_count', { p_post_id: postId })
@@ -235,6 +267,7 @@ export async function getNotice(id: string, incrementView: boolean = true) {
       title: post.title,
       content: post.content,
       author_id: post.author_user_id,
+      author_name: authorName,
       is_pinned: post.is_pinned || false,
       view_count: post.view_count || 0,
       created_at: post.created_at,

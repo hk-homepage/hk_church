@@ -4,7 +4,6 @@ import { ArrowLeft, List } from 'lucide-react'
 import { notFound } from 'next/navigation'
 import { BoardDetail } from '@/components/board-detail'
 import { getNotice } from '@/app/actions/announcements'
-import { createClient } from '@/lib/supabase/server'
 
 // SSR (Server-Side Rendering) 사용
 // 매 요청마다 최신 데이터를 가져와서 렌더링
@@ -44,21 +43,8 @@ export default async function AnnouncementDetailPage({ params }: PageProps) {
 
     const notice = result.notice
     
-    // 작성자 이름 가져오기
-    const supabase = await createClient()
-    let authorName = '관리자'
-    if (notice.author_id) {
-        const { data: profile } = await supabase
-            .from('profiles')
-            .select('name')
-            .eq('id', notice.author_id)
-            .single()
-        if (profile?.name) {
-            authorName = profile.name
-        }
-    }
-
     // BoardDetail 컴포넌트에 맞는 형식으로 변환
+    // getNotice에서 이미 JOIN으로 author_name을 가져왔으므로 별도 조회 불필요
     const post = {
         id: notice.id,
         category_slug: 'grace' as const, // 임시로 사용 (공지사항은 별도 타입이지만 BoardDetail 재사용)
@@ -66,7 +52,7 @@ export default async function AnnouncementDetailPage({ params }: PageProps) {
         content: typeof notice.content === 'string' 
             ? notice.content 
             : (notice.content as any)?.text || JSON.stringify(notice.content),
-        author_name: authorName,
+        author_name: (notice as any).author_name || '관리자', // getNotice에서 JOIN으로 가져온 값 사용
         author_id: notice.author_id,
         view_count: notice.view_count || 0,
         is_pinned: notice.is_pinned || false,

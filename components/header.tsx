@@ -1,13 +1,13 @@
 // Main site header with navigation menu and mobile hamburger
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Menu, Church, User, Calendar, MessageSquare, LogIn, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { createClient } from "@/lib/supabase/client"
 import { logoutAction } from "@/app/actions/auth"
+import { useAuth } from "@/hooks/useAuth"
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -83,52 +83,11 @@ const menuItems = [
 
 export function Header() {
   const [isOpen, setIsOpen] = useState(false)
-  const [user, setUser] = useState<{ name?: string; userId?: string } | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const { user, isLoading } = useAuth()
   const router = useRouter()
-
-  useEffect(() => {
-    // 사용자 정보 가져오기
-    const supabase = createClient()
-    
-    const getUser = async () => {
-      const { data: { user: authUser } } = await supabase.auth.getUser()
-      
-      if (authUser) {
-        // 프로필 정보 가져오기
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('name, user_id')
-          .eq('id', authUser.id)
-          .single()
-        
-        if (profile) {
-          setUser({
-            name: profile.name || undefined,
-            userId: profile.user_id || undefined,
-          })
-        }
-      } else {
-        setUser(null)
-      }
-      setIsLoading(false)
-    }
-
-    getUser()
-
-    // 인증 상태 변경 감지
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
-      getUser()
-    })
-
-    return () => {
-      subscription.unsubscribe()
-    }
-  }, [])
 
   const handleLogout = async () => {
     await logoutAction()
-    setUser(null)
     // 페이지 새로고침
     window.location.href = '/'
   }
