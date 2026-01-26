@@ -12,6 +12,8 @@ interface Bulletin {
   date: string
   title: string
   image: string
+  pdfUrl?: string
+  imageUrl?: string
 }
 
 interface BulletinGridProps {
@@ -23,10 +25,14 @@ export function BulletinGrid({ bulletins }: BulletinGridProps) {
 
   const handleDownload = (e: React.MouseEvent, bulletin: Bulletin) => {
     e.stopPropagation()
-    // 다운로드 로직 (추후 구현)
+    // PDF 또는 이미지 다운로드
+    const downloadUrl = bulletin.pdfUrl || bulletin.imageUrl || bulletin.image
+    const isPdf = !!bulletin.pdfUrl
+    const extension = isPdf ? 'pdf' : 'jpg'
     const link = document.createElement('a')
-    link.href = bulletin.image
-    link.download = `${bulletin.title}.jpg`
+    link.href = downloadUrl
+    link.download = `${bulletin.title}.${extension}`
+    link.target = '_blank'
     link.click()
   }
 
