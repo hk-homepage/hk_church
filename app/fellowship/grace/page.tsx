@@ -4,7 +4,7 @@ import { BoardList } from '@/components/fellowship/board-list'
 import { BoardPagination } from '@/components/fellowship/board-pagination'
 import { generateMockPosts } from '@/lib/mock/fellowship-data'
 import { getBoardConfig } from '@/lib/constants/fellowship'
-import type { PaginationInfo } from '@/types/fellowship'
+import type { PaginationInfo } from '@/types/posts'
 
 const CATEGORY = 'grace' as const
 

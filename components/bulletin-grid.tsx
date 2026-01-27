@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { Download, Calendar } from 'lucide-react'
 
 interface Bulletin {
-  id: number
+  id: string | number
   date: string
   title: string
   image: string

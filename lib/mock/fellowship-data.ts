@@ -1,5 +1,5 @@
 // Mock data generators for fellowship posts (temporary until Supabase)
-import type { FellowshipPostListItem, FellowshipPost, BoardCategory } from '@/types/fellowship'
+import type { FellowshipPostListItem, FellowshipPost, BoardCategory } from '@/types/posts'
 export function generateMockPosts(category: BoardCategory, count: number = 50): FellowshipPostListItem[] {
     const posts: FellowshipPostListItem[] = []
 

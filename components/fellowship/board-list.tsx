@@ -1,5 +1,5 @@
 // Table of fellowship posts with header row
-import type { FellowshipPostListItem, BoardCategory } from '@/types/fellowship'
+import type { FellowshipPostListItem, BoardCategory } from '@/types/posts'
 import { BoardItem } from './board-item'
 
 interface BoardListProps {

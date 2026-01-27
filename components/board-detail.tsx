@@ -2,7 +2,7 @@
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { Eye, Calendar, User, Paperclip, Download } from 'lucide-react'
-import type { FellowshipPost } from '@/types/fellowship'
+import type { FellowshipPost } from '@/types/posts'
 import { MarkdownContent } from '@/lib/utils/markdown'
 
 interface BoardDetailProps {

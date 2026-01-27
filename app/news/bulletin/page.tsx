@@ -19,12 +19,22 @@ export default async function BulletinPage() {
   
   // 데이터베이스에서 가져온 주보를 컴포넌트 형식에 맞게 변환
   const bulletins = result.bulletins.map((bulletin) => {
-    // bulletin_date를 "YYYY년 MM월 DD일" 형식으로 변환
-    const date = new Date(bulletin.bulletin_date)
-    const formattedDate = `${date.getFullYear()}년 ${String(date.getMonth() + 1).padStart(2, '0')}월 ${String(date.getDate()).padStart(2, '0')}일`
+    // bulletin_date를 "YYYY년 MM월 DD일" 형식으로 변환 (타임존 안전)
+    let formattedDate = ''
+    if (bulletin.bulletin_date) {
+      // ISO 날짜 문자열을 안전하게 파싱
+      const dateStr = bulletin.bulletin_date.includes('T') 
+        ? bulletin.bulletin_date.split('T')[0] 
+        : bulletin.bulletin_date
+      const [year, month, day] = dateStr.split('-')
+      if (year && month && day) {
+        formattedDate = `${year}년 ${month.padStart(2, '0')}월 ${day.padStart(2, '0')}일`
+      }
+    }
     
+    // ID는 문자열 그대로 사용
     return {
-      id: parseInt(bulletin.id.slice(0, 8), 16) || 0, // UUID를 숫자로 변환 (간단한 방법)
+      id: bulletin.id,
       date: formattedDate,
       title: bulletin.title,
       image: bulletin.cover_image_url || bulletin.pdf_url || "/placeholder.svg",

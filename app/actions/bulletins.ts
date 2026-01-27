@@ -3,6 +3,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { getCurrentUser } from './auth'
 import { isAdmin } from '@/lib/utils/permissions'
+import { getBulletins as getUnifiedBulletins, getBulletin as getUnifiedBulletin } from './posts'
+import type { Bulletin } from '@/types/posts'
 
 export interface CreateBulletinInput {
   title: string
@@ -18,20 +20,8 @@ export interface BulletinResult {
   id?: string
 }
 
-export interface Bulletin {
-  id: string
-  title: string
-  bulletin_date: string
-  cover_image_url?: string
-  pdf_url: string
-  page_count?: number
-  created_by?: string
-  created_at: string
-  updated_at: string
-}
-
 /**
- * 주보 작성 (관리자만)
+ * 주보 작성 (관리자만) - 통합된 posts 테이블 사용
  */
 export async function createBulletin(data: CreateBulletinInput): Promise<BulletinResult> {
   try {
@@ -78,17 +68,39 @@ export async function createBulletin(data: CreateBulletinInput): Promise<Bulleti
 
     const supabase = await createClient()
 
-    const { data: bulletin, error } = await supabase
-      .from('bulletins')
+    // 주보 게시판 찾기
+    const { data: board } = await supabase
+      .from('boards')
+      .select('board_id')
+      .eq('slug', 'bulletins')
+      .single()
+
+    if (!board) {
+      return {
+        success: false,
+        error: '주보 게시판을 찾을 수 없습니다.',
+      }
+    }
+
+    // 통합된 posts 테이블에 저장
+    const { data: post, error } = await supabase
+      .from('posts')
       .insert({
+        board_id: board.board_id,
+        post_type: 'bulletin',
+        author_user_id: user.id,
+        author_name: '관리자',
         title: data.title.trim(),
-        bulletin_date: data.bulletin_date,
-        cover_image_url: data.cover_image_url?.trim() || null,
-        pdf_url: data.pdf_url?.trim() || null,
-        page_count: data.page_count || 1, // 기본값 1
-        created_by: user.id,
+        content: '', // 주보는 내용이 없을 수 있음
+        thumbnail_url: data.cover_image_url?.trim() || null,
+        metadata: {
+          bulletin_date: data.bulletin_date,
+          cover_image_url: data.cover_image_url?.trim() || null,
+          pdf_url: data.pdf_url?.trim() || null,
+          page_count: data.page_count || 1,
+        },
       })
-      .select('id')
+      .select('post_id')
       .single()
 
     if (error) {
@@ -99,7 +111,7 @@ export async function createBulletin(data: CreateBulletinInput): Promise<Bulleti
       }
     }
 
-    if (!bulletin) {
+    if (!post) {
       return {
         success: false,
         error: '주보가 생성되지 않았습니다.',
@@ -108,7 +120,7 @@ export async function createBulletin(data: CreateBulletinInput): Promise<Bulleti
 
     return {
       success: true,
-      id: bulletin.id,
+      id: post.post_id.toString(),
     }
   } catch (error) {
     console.error('Create bulletin error:', error)
@@ -120,79 +132,21 @@ export async function createBulletin(data: CreateBulletinInput): Promise<Bulleti
 }
 
 /**
- * 주보 목록 가져오기
+ * 주보 목록 가져오기 - 통합된 posts 테이블 사용
  */
 export async function getBulletins(limit: number = 50) {
-  try {
-    const supabase = await createClient()
-
-    const { data: bulletins, error } = await supabase
-      .from('bulletins')
-      .select('*')
-      .order('bulletin_date', { ascending: false })
-      .limit(limit)
-
-    if (error) {
-      console.error('주보 목록 조회 에러:', error)
-      return {
-        success: false,
-        error: error.message,
-        bulletins: [],
-      }
-    }
-
-    return {
-      success: true,
-      bulletins: (bulletins || []) as Bulletin[],
-    }
-  } catch (error) {
-    console.error('Get bulletins error:', error)
-    return {
-      success: false,
-      error: '주보 목록을 불러오는 중 오류가 발생했습니다.',
-      bulletins: [],
-    }
-  }
+  return getUnifiedBulletins(limit)
 }
 
 /**
- * 주보 상세 가져오기
+ * 주보 상세 가져오기 - 통합된 posts 테이블 사용
  */
 export async function getBulletin(id: string) {
-  try {
-    const supabase = await createClient()
-
-    const { data: bulletin, error } = await supabase
-      .from('bulletins')
-      .select('*')
-      .eq('id', id)
-      .single()
-
-    if (error || !bulletin) {
-      console.error('주보 상세 조회 에러:', error)
-      return {
-        success: false,
-        error: error?.message || '주보를 찾을 수 없습니다.',
-        bulletin: null,
-      }
-    }
-
-    return {
-      success: true,
-      bulletin: bulletin as Bulletin,
-    }
-  } catch (error) {
-    console.error('Get bulletin error:', error)
-    return {
-      success: false,
-      error: '주보를 불러오는 중 오류가 발생했습니다.',
-      bulletin: null,
-    }
-  }
+  return getUnifiedBulletin(id)
 }
 
 /**
- * 주보 수정 (관리자만)
+ * 주보 수정 (관리자만) - 통합된 posts 테이블 사용
  */
 export async function updateBulletin(id: string, data: Partial<CreateBulletinInput>): Promise<BulletinResult> {
   try {
@@ -212,19 +166,41 @@ export async function updateBulletin(id: string, data: Partial<CreateBulletinInp
       }
     }
 
+    const postId = parseInt(id, 10)
+    if (isNaN(postId)) {
+      return {
+        success: false,
+        error: '유효하지 않은 주보 ID입니다.',
+      }
+    }
+
     const supabase = await createClient()
 
     const updateData: any = {}
     if (data.title !== undefined) updateData.title = data.title.trim()
-    if (data.bulletin_date !== undefined) updateData.bulletin_date = data.bulletin_date
-    if (data.cover_image_url !== undefined) updateData.cover_image_url = data.cover_image_url?.trim() || null
-    if (data.pdf_url !== undefined) updateData.pdf_url = data.pdf_url.trim()
-    if (data.page_count !== undefined) updateData.page_count = data.page_count || null
+    if (data.cover_image_url !== undefined) updateData.thumbnail_url = data.cover_image_url?.trim() || null
+    
+    // metadata 업데이트
+    const { data: existingPost } = await supabase
+      .from('posts')
+      .select('metadata')
+      .eq('post_id', postId)
+      .single()
+
+    if (existingPost) {
+      const metadata = existingPost.metadata || {}
+      if (data.bulletin_date !== undefined) metadata.bulletin_date = data.bulletin_date
+      if (data.cover_image_url !== undefined) metadata.cover_image_url = data.cover_image_url?.trim() || null
+      if (data.pdf_url !== undefined) metadata.pdf_url = data.pdf_url.trim()
+      if (data.page_count !== undefined) metadata.page_count = data.page_count || null
+      updateData.metadata = metadata
+    }
 
     const { error } = await supabase
-      .from('bulletins')
+      .from('posts')
       .update(updateData)
-      .eq('id', id)
+      .eq('post_id', postId)
+      .eq('post_type', 'bulletin')
 
     if (error) {
       console.error('주보 수정 에러:', error)
@@ -248,7 +224,7 @@ export async function updateBulletin(id: string, data: Partial<CreateBulletinInp
 }
 
 /**
- * 주보 삭제 (관리자만)
+ * 주보 삭제 (관리자만) - 통합된 posts 테이블 사용 (soft delete)
  */
 export async function deleteBulletin(id: string): Promise<BulletinResult> {
   try {
@@ -268,12 +244,22 @@ export async function deleteBulletin(id: string): Promise<BulletinResult> {
       }
     }
 
+    const postId = parseInt(id, 10)
+    if (isNaN(postId)) {
+      return {
+        success: false,
+        error: '유효하지 않은 주보 ID입니다.',
+      }
+    }
+
     const supabase = await createClient()
 
+    // Soft delete
     const { error } = await supabase
-      .from('bulletins')
-      .delete()
-      .eq('id', id)
+      .from('posts')
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('post_id', postId)
+      .eq('post_type', 'bulletin')
 
     if (error) {
       console.error('주보 삭제 에러:', error)

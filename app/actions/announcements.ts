@@ -3,6 +3,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { getCurrentUser } from './auth'
 import { isAdmin } from '@/lib/utils/permissions'
+import type { UnifiedPost, Notice } from '@/types/posts'
+import { convertToNotice } from '@/types/posts'
+import { getPostsByBoard, getPostById } from './posts'
 
 export interface CreateNoticeInput {
   title: string
@@ -67,17 +70,20 @@ export async function createNotice(data: CreateNoticeInput): Promise<NoticeResul
       }
     }
 
-    // 공지사항을 posts 테이블에 저장 (is_notice = TRUE)
+    // 공지사항을 posts 테이블에 저장 (post_type = 'announcement', is_notice = TRUE)
     const { data: post, error } = await supabase
       .from('posts')
       .insert({
         board_id: noticeBoard.board_id,
+        post_type: 'announcement',
         author_user_id: user.id,
+        author_name: user.name || '관리자',
         title: data.title.trim(),
         content: data.content.trim(),
         is_notice: true,
         is_pinned: data.is_pinned ?? false,
         view_count: 0,
+        metadata: {},
       })
       .select('post_id')
       .single()
@@ -115,176 +121,75 @@ export async function createNotice(data: CreateNoticeInput): Promise<NoticeResul
 }
 
 /**
- * 공지사항 목록 가져오기
+ * 공지사항 목록 가져오기 - 통합된 posts 테이블 사용
  */
 export async function getNotices(page: number = 1, limit: number = 10) {
-  try {
-    const supabase = await createClient()
-
-    // 공지사항 게시판 찾기
-    const { data: noticeBoard } = await supabase
-      .from('boards')
-      .select('board_id')
-      .eq('name', '공지사항')
-      .single()
-
-    if (!noticeBoard) {
-      return {
-        success: true,
-        notices: [],
-        total: 0,
-      }
-    }
-
-    const from = (page - 1) * limit
-    const to = from + limit - 1
-
-    // 공지사항 게시판의 is_notice = TRUE인 게시물만 가져오기
-    const { data: posts, error, count } = await supabase
-      .from('posts')
-      .select('*', { count: 'exact' })
-      .eq('board_id', noticeBoard.board_id)
-      .eq('is_notice', true)
-      .is('deleted_at', null)
-      .order('is_pinned', { ascending: false })
-      .order('created_at', { ascending: false })
-      .range(from, to)
-
-    if (error) {
-      console.error('공지사항 목록 조회 에러:', error)
-      return {
-        success: false,
-        error: error.message,
-        notices: [],
-        total: 0,
-      }
-    }
-
-    // 작성자 정보 별도 조회 (배치로 가져오기)
-    const authorIds = [...new Set((posts || []).map((post: any) => post.author_user_id).filter(Boolean))]
-    const authorNamesMap: Record<string, string> = {}
-    
-    if (authorIds.length > 0) {
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('id, name')
-        .in('id', authorIds)
-      
-      if (profiles) {
-        profiles.forEach((profile) => {
-          authorNamesMap[profile.id] = profile.name || '관리자'
-        })
-      }
-    }
-
-    // posts 테이블 구조를 notices와 호환되도록 변환
-    const notices = (posts || []).map((post: any) => ({
-      id: post.post_id.toString(),
-      title: post.title,
-      content: post.content,
-      author_id: post.author_user_id,
-      author_name: authorNamesMap[post.author_user_id] || '관리자',
-      is_pinned: post.is_pinned || false,
-      view_count: post.view_count || 0,
-      created_at: post.created_at,
-      updated_at: post.updated_at,
-      attachments: [],
-    }))
-
+  const result = await getPostsByBoard('announcements', { 
+    page, 
+    limit, 
+    postType: 'announcement' 
+  })
+  
+  if (!result.success) {
     return {
-      success: true,
-      notices,
-      total: count || 0,
-    }
-  } catch (error) {
-    console.error('Get notices error:', error)
-    return {
-      success: false,
-      error: '공지사항 목록을 불러오는 중 오류가 발생했습니다.',
+      success: true, // 하위 호환성
       notices: [],
       total: 0,
     }
   }
+  
+  // UnifiedPost를 Notice 형식으로 변환
+  const notices = result.posts
+    .filter(post => post.is_notice) // is_notice = true인 것만
+    .map(convertToNotice)
+  
+  return {
+    success: true,
+    notices,
+    total: result.total,
+  }
 }
 
 /**
- * 공지사항 상세 가져오기
+ * 공지사항 상세 가져오기 - 통합된 posts 테이블 사용
  * @param id 공지사항 ID
  * @param incrementView 조회수 증가 여부 (기본값: true)
  */
 export async function getNotice(id: string, incrementView: boolean = true) {
-  try {
-    const supabase = await createClient()
-
-    const postId = parseInt(id, 10)
-    if (isNaN(postId)) {
-      return {
-        success: false,
-        error: '유효하지 않은 공지사항 ID입니다.',
-        notice: null,
-      }
-    }
-
-    const { data: post, error } = await supabase
-      .from('posts')
-      .select('*')
-      .eq('post_id', postId)
-      .eq('is_notice', true)
-      .is('deleted_at', null)
-      .single()
-
-    if (error || !post) {
-      console.error('공지사항 상세 조회 에러:', error)
-      return {
-        success: false,
-        error: error?.message || '공지사항을 찾을 수 없습니다.',
-        notice: null,
-      }
-    }
-
-    // 작성자 정보 별도 조회
-    let authorName = '관리자'
-    if (post.author_user_id) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('name')
-        .eq('id', post.author_user_id)
-        .single()
-      
-      if (profile) {
-        authorName = profile.name || '관리자'
-      }
-    }
-
-    // 조회수 증가 (옵션)
-    if (incrementView) {
-      await supabase.rpc('increment_post_view_count', { p_post_id: postId })
-    }
-
-    // posts 테이블 구조를 notices와 호환되도록 변환
-    const notice = {
-      id: post.post_id.toString(),
-      title: post.title,
-      content: post.content,
-      author_id: post.author_user_id,
-      author_name: authorName,
-      is_pinned: post.is_pinned || false,
-      view_count: post.view_count || 0,
-      created_at: post.created_at,
-      updated_at: post.updated_at,
-      attachments: [],
-    }
-
-    return {
-      success: true,
-      notice,
-    }
-  } catch (error) {
-    console.error('Get notice error:', error)
+  const postId = parseInt(id, 10)
+  
+  if (isNaN(postId)) {
     return {
       success: false,
-      error: '공지사항을 불러오는 중 오류가 발생했습니다.',
+      error: '유효하지 않은 공지사항 ID입니다.',
       notice: null,
     }
+  }
+  
+  const result = await getPostById(postId, incrementView)
+  
+  if (!result.success || !result.post) {
+    return {
+      success: false,
+      error: result.error || '공지사항을 찾을 수 없습니다.',
+      notice: null,
+    }
+  }
+  
+  // 공지사항인지 확인
+  if (!result.post.is_notice || result.post.post_type !== 'announcement') {
+    return {
+      success: false,
+      error: '공지사항을 찾을 수 없습니다.',
+      notice: null,
+    }
+  }
+  
+  // UnifiedPost를 Notice로 변환
+  const notice = convertToNotice(result.post)
+  
+  return {
+    success: true,
+    notice,
   }
 }
