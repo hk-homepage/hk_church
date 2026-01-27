@@ -5,7 +5,10 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Calendar, ImageIcon, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { getGalleryAlbum } from "@/app/actions/gallery"
+import { getGalleryAlbum, deleteGalleryAlbum } from "@/app/actions/gallery"
+import { DeletePostButton } from "@/components/delete-post-button"
+import { getCurrentUser } from "@/app/actions/auth"
+import { isAdmin } from "@/lib/utils/permissions"
 
 interface GalleryDetailPageProps {
   params: Promise<{ id: string }>
@@ -36,6 +39,8 @@ export default async function GalleryDetailPage({ params }: GalleryDetailPagePro
   }
 
   const album = result.album
+  const user = await getCurrentUser()
+  const canDelete = isAdmin(user)
 
   // 날짜 포맷팅
   const formatDate = (dateString: string | null | undefined): string => {
@@ -100,6 +105,14 @@ export default async function GalleryDetailPage({ params }: GalleryDetailPagePro
                       </span>
                     </div>
                   </div>
+                  {canDelete && (
+                    <DeletePostButton
+                      id={id}
+                      onDelete={deleteGalleryAlbum}
+                      redirectPath="/news/gallery"
+                      title={album.title}
+                    />
+                  )}
                 </div>
               </CardContent>
             </Card>

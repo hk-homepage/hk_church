@@ -226,3 +226,62 @@ export async function getGalleryAlbum(id: string): Promise<GalleryAlbumResponse>
     }
   }
 }
+
+/**
+ * 갤러리 앨범 삭제 (관리자만) - 통합된 posts 테이블 사용 (soft delete)
+ */
+export async function deleteGalleryAlbum(id: string): Promise<GalleryAlbumResult> {
+  try {
+    const user = await getCurrentUser()
+    
+    if (!user) {
+      return {
+        success: false,
+        error: '로그인이 필요합니다.',
+      }
+    }
+
+    if (!isAdmin(user)) {
+      return {
+        success: false,
+        error: '관리자만 갤러리를 삭제할 수 있습니다.',
+      }
+    }
+
+    const postId = parseInt(id, 10)
+    if (isNaN(postId)) {
+      return {
+        success: false,
+        error: '유효하지 않은 갤러리 ID입니다.',
+      }
+    }
+
+    const supabase = await createClient()
+
+    // Soft delete
+    const { error } = await supabase
+      .from('posts')
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('post_id', postId)
+      .eq('post_type', 'gallery')
+
+    if (error) {
+      console.error('갤러리 삭제 에러:', error)
+      return {
+        success: false,
+        error: error.message || '갤러리 삭제에 실패했습니다.',
+      }
+    }
+
+    return {
+      success: true,
+      id,
+    }
+  } catch (error) {
+    console.error('Delete gallery album error:', error)
+    return {
+      success: false,
+      error: '갤러리 삭제 중 오류가 발생했습니다.',
+    }
+  }
+}

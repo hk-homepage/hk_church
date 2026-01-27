@@ -64,7 +64,7 @@ export default async function BulletinPage() {
               </div>
             )}
             {result.success && bulletins.length > 0 ? (
-              <BulletinGrid bulletins={bulletins} />
+              <BulletinGrid bulletins={bulletins} canDelete={canCreate} />
             ) : (
               <div className="text-center py-12">
                 <p className="text-muted-foreground">등록된 주보가 없습니다.</p>

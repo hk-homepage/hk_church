@@ -193,3 +193,63 @@ export async function getNotice(id: string, incrementView: boolean = true) {
     notice,
   }
 }
+
+/**
+ * 공지사항 삭제 (관리자만) - 통합된 posts 테이블 사용 (soft delete)
+ */
+export async function deleteNotice(id: string): Promise<NoticeResult> {
+  try {
+    const user = await getCurrentUser()
+    
+    if (!user) {
+      return {
+        success: false,
+        error: '로그인이 필요합니다.',
+      }
+    }
+
+    if (!isAdmin(user)) {
+      return {
+        success: false,
+        error: '관리자만 공지사항을 삭제할 수 있습니다.',
+      }
+    }
+
+    const postId = parseInt(id, 10)
+    if (isNaN(postId)) {
+      return {
+        success: false,
+        error: '유효하지 않은 공지사항 ID입니다.',
+      }
+    }
+
+    const supabase = await createClient()
+
+    // Soft delete
+    const { error } = await supabase
+      .from('posts')
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('post_id', postId)
+      .eq('post_type', 'announcement')
+      .eq('is_notice', true)
+
+    if (error) {
+      console.error('공지사항 삭제 에러:', error)
+      return {
+        success: false,
+        error: error.message || '공지사항 삭제에 실패했습니다.',
+      }
+    }
+
+    return {
+      success: true,
+      id,
+    }
+  } catch (error) {
+    console.error('Delete notice error:', error)
+    return {
+      success: false,
+      error: '공지사항 삭제 중 오류가 발생했습니다.',
+    }
+  }
+}

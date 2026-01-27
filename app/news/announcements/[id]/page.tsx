@@ -3,7 +3,10 @@ import Link from 'next/link'
 import { ArrowLeft, List } from 'lucide-react'
 import { notFound } from 'next/navigation'
 import { BoardDetail } from '@/components/board-detail'
-import { getNotice } from '@/app/actions/announcements'
+import { getNotice, deleteNotice } from '@/app/actions/announcements'
+import { DeletePostButton } from '@/components/delete-post-button'
+import { getCurrentUser } from '@/app/actions/auth'
+import { isAdmin } from '@/lib/utils/permissions'
 
 // SSR (Server-Side Rendering) 사용
 // 매 요청마다 최신 데이터를 가져와서 렌더링
@@ -42,6 +45,8 @@ export default async function AnnouncementDetailPage({ params }: PageProps) {
     }
 
     const notice = result.notice
+    const user = await getCurrentUser()
+    const canDelete = isAdmin(user)
     
     // BoardDetail 컴포넌트에 맞는 형식으로 변환
     // getNotice에서 이미 JOIN으로 author_name을 가져왔으므로 별도 조회 불필요
@@ -74,13 +79,23 @@ export default async function AnnouncementDetailPage({ params }: PageProps) {
                     <ArrowLeft className="w-4 h-4" />
                     <span>목록으로</span>
                 </Link>
-                <Link
-                    href="/news/announcements"
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                >
-                    <List className="w-4 h-4" />
-                    <span>전체 목록</span>
-                </Link>
+                <div className="flex items-center gap-2">
+                    {canDelete && (
+                        <DeletePostButton
+                            id={id}
+                            onDelete={deleteNotice}
+                            redirectPath="/news/announcements"
+                            title={notice.title}
+                        />
+                    )}
+                    <Link
+                        href="/news/announcements"
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                    >
+                        <List className="w-4 h-4" />
+                        <span>전체 목록</span>
+                    </Link>
+                </div>
             </div>
 
             {/* 게시글 상세 */}
