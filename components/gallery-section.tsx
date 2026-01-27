@@ -3,35 +3,30 @@ import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { ChevronRight, Calendar } from "lucide-react"
+import { getGalleryAlbums } from "@/app/actions/gallery"
 
-const galleryItems = [
-  {
-    id: 1,
-    title: "4분기 성경암송대회",
-    date: "2025-12-27",
-    image: "/church-bible-recitation-competition-event-korean.jpg",
-  },
-  {
-    id: 2,
-    title: "성탄축하예배",
-    date: "2025-12-27",
-    image: "/christmas-celebration-worship-service-church-decor.jpg",
-  },
-  {
-    id: 3,
-    title: "하반기 성경통독반 종강",
-    date: "2025-12-14",
-    image: "/bible-study-group-graduation-ceremony-church.jpg",
-  },
-  {
-    id: 4,
-    title: "새가족 수료식",
-    date: "2025-12-14",
-    image: "/new-members-graduation-ceremony-church-korean.jpg",
-  },
-]
+export async function GallerySection() {
+  const result = await getGalleryAlbums({ limit: 4 })
 
-export function GallerySection() {
+  // 날짜 포맷팅 (타임존 안전)
+  const formatDate = (dateString: string | null | undefined): string => {
+    if (!dateString) return ''
+    try {
+      const dateStr = dateString.includes('T') 
+        ? dateString.split('T')[0] 
+        : dateString
+      const [year, month, day] = dateStr.split('-')
+      if (year && month && day) {
+        return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`
+      }
+      return dateString
+    } catch {
+      return dateString
+    }
+  }
+
+  const galleryItems = result.success ? result.albums.slice(0, 4) : []
+
   return (
     <section className="bg-muted py-16 md:py-24">
       <div className="container mx-auto px-4">
@@ -48,32 +43,38 @@ export function GallerySection() {
           </Button>
         </div>
 
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {galleryItems.map((item) => (
-            <Link
-              key={item.id}
-              href={`/news/gallery/${item.id}`}
-              className="group overflow-hidden rounded-2xl bg-card shadow-md transition-all hover:-translate-y-1 hover:shadow-xl"
-            >
-              <div className="relative aspect-[4/3] overflow-hidden">
-                <Image
-                  src={item.image || "/placeholder.svg"}
-                  alt={item.title}
-                  fill
-                  className="object-cover transition-transform duration-500 group-hover:scale-110"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
-              </div>
-              <div className="p-4">
-                <h3 className="mb-2 font-semibold text-foreground group-hover:text-primary">{item.title}</h3>
-                <p className="flex items-center gap-1 text-sm text-muted-foreground">
-                  <Calendar className="h-3 w-3" />
-                  {item.date}
-                </p>
-              </div>
-            </Link>
-          ))}
-        </div>
+        {galleryItems.length > 0 ? (
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {galleryItems.map((item) => (
+              <Link
+                key={item.id}
+                href={`/news/gallery/${item.id}`}
+                className="group overflow-hidden rounded-2xl bg-card shadow-md transition-all hover:-translate-y-1 hover:shadow-xl"
+              >
+                <div className="relative aspect-[4/3] overflow-hidden">
+                  <Image
+                    src={item.cover_image_url || "/placeholder.svg"}
+                    alt={item.title}
+                    fill
+                    className="object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+                </div>
+                <div className="p-4">
+                  <h3 className="mb-2 font-semibold text-foreground group-hover:text-primary">{item.title}</h3>
+                  <p className="flex items-center gap-1 text-sm text-muted-foreground">
+                    <Calendar className="h-3 w-3" />
+                    {formatDate(item.event_date)}
+                  </p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8 text-muted-foreground">
+            등록된 갤러리가 없습니다.
+          </div>
+        )}
       </div>
     </section>
   )

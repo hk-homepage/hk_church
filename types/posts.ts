@@ -1,7 +1,7 @@
 // 통합된 게시물 타입 정의
 
-export type PostType = 'general' | 'fellowship' | 'bulletin' | 'announcement'
-export type BoardType = 'general' | 'fellowship' | 'bulletin' | 'announcement'
+export type PostType = 'general' | 'fellowship' | 'bulletin' | 'announcement' | 'gallery'
+export type BoardType = 'general' | 'fellowship' | 'bulletin' | 'announcement' | 'gallery'
 
 // 게시물 메타데이터 타입
 export interface FellowshipMetadata {
@@ -21,6 +21,18 @@ export interface BulletinMetadata {
   page_count?: number
 }
 
+export interface GalleryMetadata {
+  category?: 'worship' | 'special' | 'sunday-school' | 'event' | 'retreat' | 'other'
+  event_date?: string
+  images?: Array<{
+    id?: string
+    image_url: string
+    thumbnail_url?: string
+    caption?: string
+    display_order?: number
+  }>
+}
+
 export interface PostMetadata {
   // fellowship 게시판의 경우
   category_slug?: 'grace' | 'thanks' | 'daily'
@@ -35,6 +47,16 @@ export interface PostMetadata {
   cover_image_url?: string
   pdf_url?: string
   page_count?: number
+  // gallery 게시판의 경우
+  category?: 'worship' | 'special' | 'sunday-school' | 'event' | 'retreat' | 'other'
+  event_date?: string
+  images?: Array<{
+    id?: string
+    image_url: string
+    thumbnail_url?: string
+    caption?: string
+    display_order?: number
+  }>
   // 기타
   [key: string]: any
 }
@@ -249,5 +271,98 @@ export function convertToBulletin(post: UnifiedPost): Bulletin {
     created_by: post.author_user_id,
     created_at: post.created_at,
     updated_at: post.updated_at,
+  }
+}
+
+// ============================================
+// 갤러리 타입 (UnifiedPost에서 변환)
+// ============================================
+
+export type GalleryCategory = 
+  | 'all'           // 전체
+  | 'worship'       // 주일예배
+  | 'special'       // 특별예배
+  | 'sunday-school' // 교회학교
+  | 'event'         // 행사
+  | 'retreat'       // 수련회
+  | 'other'         // 기타
+
+export interface GalleryAlbum {
+  id: string
+  title: string
+  description?: string | null
+  category?: string | null
+  event_date?: string | null
+  cover_image_url?: string | null
+  image_count?: number
+  created_at: string
+}
+
+export interface GalleryImage {
+  id: string
+  album_id: string
+  image_url: string
+  thumbnail_url?: string | null
+  caption?: string | null
+  display_order?: number | null
+  created_at: string
+}
+
+export interface GalleryAlbumDetail extends GalleryAlbum {
+  images: GalleryImage[]
+}
+
+// 갤러리 API 응답 타입
+export interface GalleryAlbumsResponse {
+  success: boolean
+  error?: string
+  albums: GalleryAlbum[]
+  total: number
+}
+
+export interface GalleryAlbumResponse {
+  success: boolean
+  error?: string
+  album: GalleryAlbumDetail | null
+}
+
+// UnifiedPost를 GalleryAlbum으로 변환하는 헬퍼 함수
+export function convertToGalleryAlbum(post: UnifiedPost): GalleryAlbum {
+  const metadata = post.metadata?.gallery || post.metadata
+  return {
+    id: post.post_id.toString(),
+    title: post.title,
+    description: post.content || null,
+    category: metadata?.category || null,
+    event_date: metadata?.event_date || null,
+    cover_image_url: post.thumbnail_url || metadata?.cover_image_url || null,
+    image_count: metadata?.images?.length || 0,
+    created_at: post.created_at,
+  }
+}
+
+// UnifiedPost를 GalleryAlbumDetail로 변환하는 헬퍼 함수
+export function convertToGalleryAlbumDetail(post: UnifiedPost): GalleryAlbumDetail {
+  const metadata = post.metadata?.gallery || post.metadata
+  const images = (metadata?.images || []).map((img: any, index: number) => ({
+    id: img.id || `img-${index}`,
+    album_id: post.post_id.toString(),
+    image_url: img.image_url,
+    thumbnail_url: img.thumbnail_url || null,
+    caption: img.caption || null,
+    display_order: img.display_order ?? index,
+    created_at: post.created_at,
+  }))
+
+  return {
+    id: post.post_id.toString(),
+    title: post.title,
+    description: post.content || null,
+    category: metadata?.category || null,
+    event_date: metadata?.event_date || null,
+    cover_image_url: post.thumbnail_url || metadata?.cover_image_url || null,
+    image_count: images.length,
+    created_at: post.created_at,
+    images,
   }
 }
