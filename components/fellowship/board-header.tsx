@@ -1,5 +1,5 @@
 // Board title and description header
-import type { BoardCategory } from '@/types/fellowship'
+import type { BoardCategory } from '@/types/posts'
 import { getBoardConfig } from '@/lib/constants/fellowship'
 
 interface BoardHeaderProps {

@@ -3,7 +3,7 @@
 
 import Link from 'next/link'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import type { PaginationInfo } from '@/types/fellowship'
+import type { PaginationInfo } from '@/types/posts'
 
 interface BoardPaginationProps {
     pagination: PaginationInfo

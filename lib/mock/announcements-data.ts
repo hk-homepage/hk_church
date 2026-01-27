@@ -1,5 +1,5 @@
 // Mock data generators for announcements (temporary until Supabase)
-import type { FellowshipPost } from '@/types/fellowship'
+import type { FellowshipPost } from '@/types/posts'
 
 // announcements 목록 데이터
 export const announcementsList = [
