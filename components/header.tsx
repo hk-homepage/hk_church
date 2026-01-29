@@ -1,13 +1,14 @@
 // Main site header with navigation menu and mobile hamburger
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Menu, Church, User, Calendar, MessageSquare, LogIn, LogOut } from "lucide-react"
+import { Menu, Church, User, Calendar, MessageSquare, LogIn, LogOut, Image } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { logoutAction } from "@/app/actions/auth"
 import { useAuth } from "@/hooks/useAuth"
+import { isAdmin } from "@/lib/utils/permissions"
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -82,8 +83,14 @@ const menuItems = [
 
 export function Header() {
   const [isOpen, setIsOpen] = useState(false)
+  const [isMounted, setIsMounted] = useState(false)
   const { user, isLoading } = useAuth()
   const router = useRouter()
+
+  // 클라이언트에서만 렌더링하도록 설정 (hydration 에러 방지)
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
 
   const handleLogout = async () => {
     await logoutAction()
@@ -108,55 +115,70 @@ export function Header() {
         </Link>
 
         {/* Desktop Navigation */}
-        <NavigationMenu className="hidden lg:flex" viewport={false}>
-          <NavigationMenuList>
+        {isMounted ? (
+          <NavigationMenu className="hidden lg:flex" viewport={false}>
+            <NavigationMenuList>
+              {menuItems.map((item) => (
+                <NavigationMenuItem key={item.title}>
+                  {item.submenu ? (
+                    <>
+                      <NavigationMenuTrigger
+                        className="bg-transparent text-foreground hover:bg-accent"
+                        onClick={(e) => {
+                          // 드롭다운 아이콘 클릭이 아닌 경우에만 리다이렉트
+                          const target = e.target as HTMLElement
+                          if (!target.closest('svg')) {
+                            handleMenuClick(item.defaultHref || item.href)
+                          }
+                        }}
+                      >
+                        {item.title}
+                      </NavigationMenuTrigger>
+                      <NavigationMenuContent>
+                        <ul className="grid w-56 gap-1 p-2">
+                          {item.submenu.map((subItem) => (
+                            <li key={subItem.title}>
+                              <NavigationMenuLink asChild>
+                                <Link
+                                  href={subItem.href}
+                                  className="block select-none rounded-md p-3 text-sm leading-none text-foreground no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                                >
+                                  {subItem.title}
+                                </Link>
+                              </NavigationMenuLink>
+                            </li>
+                          ))}
+                        </ul>
+                      </NavigationMenuContent>
+                    </>
+                  ) : (
+                    <NavigationMenuLink asChild>
+                      <Link
+                        href={item.href}
+                        className="group inline-flex h-10 w-max items-center justify-center rounded-md bg-transparent px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none"
+                      >
+                        {item.title}
+                      </Link>
+                    </NavigationMenuLink>
+                  )}
+                </NavigationMenuItem>
+              ))}
+            </NavigationMenuList>
+          </NavigationMenu>
+        ) : (
+          // SSR 시 placeholder (hydration 에러 방지)
+          <nav className="hidden lg:flex items-center gap-4">
             {menuItems.map((item) => (
-              <NavigationMenuItem key={item.title}>
-                {item.submenu ? (
-                  <>
-                    <NavigationMenuTrigger
-                      className="bg-transparent text-foreground hover:bg-accent"
-                      onClick={(e) => {
-                        // 드롭다운 아이콘 클릭이 아닌 경우에만 리다이렉트
-                        const target = e.target as HTMLElement
-                        if (!target.closest('svg')) {
-                          handleMenuClick(item.defaultHref || item.href)
-                        }
-                      }}
-                    >
-                      {item.title}
-                    </NavigationMenuTrigger>
-                    <NavigationMenuContent>
-                      <ul className="grid w-56 gap-1 p-2">
-                        {item.submenu.map((subItem) => (
-                          <li key={subItem.title}>
-                            <NavigationMenuLink asChild>
-                              <Link
-                                href={subItem.href}
-                                className="block select-none rounded-md p-3 text-sm leading-none text-foreground no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                              >
-                                {subItem.title}
-                              </Link>
-                            </NavigationMenuLink>
-                          </li>
-                        ))}
-                      </ul>
-                    </NavigationMenuContent>
-                  </>
-                ) : (
-                  <NavigationMenuLink asChild>
-                    <Link
-                      href={item.href}
-                      className="group inline-flex h-10 w-max items-center justify-center rounded-md bg-transparent px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none"
-                    >
-                      {item.title}
-                    </Link>
-                  </NavigationMenuLink>
-                )}
-              </NavigationMenuItem>
+              <Link
+                key={item.title}
+                href={item.defaultHref || item.href}
+                className="text-sm font-medium text-foreground hover:text-accent-foreground"
+              >
+                {item.title}
+              </Link>
             ))}
-          </NavigationMenuList>
-        </NavigationMenu>
+          </nav>
+        )}
 
         {/* Desktop Actions */}
         <div className="hidden items-center gap-2 lg:flex">
@@ -175,6 +197,14 @@ export function Header() {
           {!isLoading && (
             user ? (
               <>
+                {isAdmin(user) && (
+                  <Button variant="ghost" size="sm" className="text-foreground" asChild>
+                    <Link href="/admin/hero-slides">
+                      <Image className="mr-2 h-4 w-4" />
+                      배너 관리
+                    </Link>
+                  </Button>
+                )}
                 <span className="text-sm text-muted-foreground">{user.name || user.userId}님</span>
                 <Button variant="outline" size="sm" onClick={handleLogout}>
                   <LogOut className="mr-2 h-4 w-4" />
@@ -239,6 +269,14 @@ export function Header() {
                       <div className="px-3 py-2 text-sm text-muted-foreground">
                         {user.name || user.userId}님
                       </div>
+                      {isAdmin(user) && (
+                        <Button variant="outline" className="justify-start bg-transparent" asChild>
+                          <Link href="/admin/hero-slides" onClick={() => setIsOpen(false)}>
+                            <Image className="mr-2 h-4 w-4" />
+                            배너 관리
+                          </Link>
+                        </Button>
+                      )}
                       <Button 
                         variant="outline" 
                         className="justify-start bg-transparent" 
