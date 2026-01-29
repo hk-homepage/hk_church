@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client"
 export interface User {
   name?: string
   userId?: string
+  role?: string
 }
 
 // 데이터 페칭 함수 분리
@@ -18,7 +19,7 @@ async function fetchUser(): Promise<User | null> {
   
   const { data: profile } = await supabase
     .from('profiles')
-    .select('name, user_id')
+    .select('name, user_id, role')
     .eq('id', authUser.id)
     .single()
   
@@ -27,6 +28,7 @@ async function fetchUser(): Promise<User | null> {
   return {
     name: profile.name || undefined,
     userId: profile.user_id || undefined,
+    role: profile.role || undefined,
   }
 }
 
