@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -14,8 +14,12 @@ import { loginAction } from "@/app/actions/auth"
 
 export default function LoginPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+
+  const redirectTo = searchParams.get('redirect')
+  const safeRedirect = redirectTo?.startsWith('/') ? redirectTo : '/'
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -29,7 +33,7 @@ export default function LoginPage() {
     const result = await loginAction(userId, password)
 
     if (result.success) {
-      router.push('/')
+      router.push(safeRedirect)
       router.refresh()
     } else {
       setError(result.error || '로그인에 실패했습니다.')

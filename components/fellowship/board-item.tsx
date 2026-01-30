@@ -9,10 +9,10 @@ import { getBoardRoute } from '@/lib/constants/fellowship'
 interface BoardItemProps {
     post: FellowshipPostListItem
     category: BoardCategory
-    index: number
+    displayNo: number
 }
 
-export function BoardItem({ post, category, index }: BoardItemProps) {
+export function BoardItem({ post, category, displayNo }: BoardItemProps) {
     const boardRoute = getBoardRoute(category)
     const postUrl = `${boardRoute}/${post.id}`
 
@@ -37,7 +37,7 @@ export function BoardItem({ post, category, index }: BoardItemProps) {
                             <Pin className="w-4 h-4 text-blue-600 dark:text-blue-400 mx-auto" />
                         ) : (
                             <span className="text-sm text-gray-500 dark:text-gray-400">
-                                {index + 1}
+                                {displayNo}
                             </span>
                         )}
                     </div>

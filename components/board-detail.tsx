@@ -57,22 +57,34 @@ export function BoardDetail({ post }: BoardDetailProps) {
                     className="prose prose-gray dark:prose-invert max-w-none"
                 />
 
-                {/* 첨부파일 */}
-                {post.attachments && post.attachments.length > 0 && (
+                {/* 첨부 이미지: 본문과 함께 메인 사진처럼 세로 배치 */}
+                {(post.attachments ?? []).filter(isImageAttachment).map((file, index) => (
+                    <div key={`img-${index}`} className="mt-6 rounded-lg overflow-hidden">
+                        <img
+                            src={file.url}
+                            alt={file.name}
+                            className="w-full h-auto"
+                            loading="lazy"
+                        />
+                    </div>
+                ))}
+
+                {/* 이미지가 아닌 첨부파일: 다운로드 링크 */}
+                {(post.attachments ?? []).filter((f) => !isImageAttachment(f)).length > 0 && (
                     <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
                         <div className="flex items-center gap-2 mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">
                             <Paperclip className="w-4 h-4" />
-                            <span>첨부파일 ({post.attachments.length})</span>
+                            <span>첨부파일</span>
                         </div>
                         <div className="space-y-2">
-                            {post.attachments.map((file, index) => (
+                            {(post.attachments ?? []).filter((f) => !isImageAttachment(f)).map((file, index) => (
                                 <a
-                                    key={index}
+                                    key={`file-${index}`}
                                     href={file.url}
                                     download={file.name}
                                     className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors group"
                                 >
-                                    <Download className="w-4 h-4 text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400" />
+                                    <Download className="w-4 h-4 text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 shrink-0" />
                                     <div className="flex-1 min-w-0">
                                         <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
                                             {file.name}
@@ -89,6 +101,11 @@ export function BoardDetail({ post }: BoardDetailProps) {
             </div>
         </article>
     )
+}
+
+// 이미지 첨부 여부 (본문과 함께 표시 vs 다운로드 링크 구분)
+function isImageAttachment(file: { type: string }): boolean {
+    return file.type?.startsWith('image/') ?? false
 }
 
 // 파일 크기 포맷팅 유틸리티
