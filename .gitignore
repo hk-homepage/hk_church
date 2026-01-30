@@ -25,3 +25,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Cursor / MCP (로컬 설정)
+mcp.json
+.cursor/mcp.json

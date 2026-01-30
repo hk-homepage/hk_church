@@ -1,8 +1,30 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { getCurrentUser } from '@/app/actions/auth'
 import type { UnifiedPost, PostType, UnifiedBoard, PostsResponse, PostResponse, Bulletin } from '@/types/posts'
 import { convertToBulletin } from '@/types/posts'
+
+export type FellowshipCategory = 'grace' | 'thanks' | 'daily'
+
+export interface FellowshipAttachmentInput {
+  name: string
+  url: string
+  size: number
+  type: string
+}
+
+export interface CreateFellowshipPostInput {
+  title: string
+  content: string
+  attachments?: FellowshipAttachmentInput[]
+}
+
+export interface CreateFellowshipPostResult {
+  success: boolean
+  error?: string
+  id?: string
+}
 
 /**
  * 게시판별 게시물 목록 조회
@@ -124,6 +146,100 @@ export async function getPostById(postId: number, incrementView: boolean = true)
 }
 
 /**
+ * 성도의 교제 게시판 글 작성 (로그인한 일반 사용자)
+ */
+export async function createFellowshipPost(
+  category: FellowshipCategory,
+  data: CreateFellowshipPostInput
+): Promise<CreateFellowshipPostResult> {
+  try {
+    const user = await getCurrentUser()
+
+    if (!user) {
+      return {
+        success: false,
+        error: '로그인이 필요합니다.',
+      }
+    }
+
+    const title = data.title?.trim()
+    if (!title) {
+      return {
+        success: false,
+        error: '제목을 입력해주세요.',
+      }
+    }
+
+    const supabase = await createClient()
+
+    const boardSlug = `fellowship-${category}`
+    const { data: board, error: boardError } = await supabase
+      .from('boards')
+      .select('board_id')
+      .eq('slug', boardSlug)
+      .single()
+
+    if (boardError || !board) {
+      return {
+        success: false,
+        error: '게시판을 찾을 수 없습니다.',
+      }
+    }
+
+    const metadata: { category_slug: FellowshipCategory; attachments?: FellowshipAttachmentInput[] } = {
+      category_slug: category,
+    }
+    if (data.attachments && data.attachments.length > 0) {
+      metadata.attachments = data.attachments
+    }
+
+    const { data: post, error } = await supabase
+      .from('posts')
+      .insert({
+        board_id: board.board_id,
+        post_type: 'general',
+        author_user_id: user.id,
+        author_name: user.name || '성도',
+        title,
+        content: data.content?.trim() || '',
+        is_pinned: false,
+        is_notice: false,
+        is_featured: false,
+        view_count: 0,
+        metadata,
+      })
+      .select('post_id')
+      .single()
+
+    if (error) {
+      console.error('fellowship 글 작성 에러:', error)
+      return {
+        success: false,
+        error: error.message || '글 작성에 실패했습니다.',
+      }
+    }
+
+    if (!post) {
+      return {
+        success: false,
+        error: '글이 등록되지 않았습니다.',
+      }
+    }
+
+    return {
+      success: true,
+      id: post.post_id.toString(),
+    }
+  } catch (error) {
+    console.error('createFellowshipPost error:', error)
+    return {
+      success: false,
+      error: '글 작성 중 오류가 발생했습니다.',
+    }
+  }
+}
+
+/**
  * 성도의 교제 게시판 게시물 조회
  */
 export async function getFellowshipPosts(
@@ -132,7 +248,7 @@ export async function getFellowshipPosts(
   limit: number = 15
 ): Promise<PostsResponse> {
   const boardSlug = `fellowship-${categorySlug}`
-  const result = await getPostsByBoard(boardSlug, { page, limit, postType: 'fellowship' })
+  const result = await getPostsByBoard(boardSlug, { page, limit, postType: 'general' })
   
   if (!result.success) {
     return result
