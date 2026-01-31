@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
+import { useQueryClient } from "@tanstack/react-query"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -15,6 +16,7 @@ import { loginAction } from "@/app/actions/auth"
 export default function LoginPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const queryClient = useQueryClient()
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
@@ -33,6 +35,9 @@ export default function LoginPage() {
     const result = await loginAction(userId, password)
 
     if (result.success) {
+      // Server Action으로 로그인하면 브라우저에서 onAuthStateChange가 안 뜨므로
+      // auth 쿼리를 refetch해 헤더(useAuth)가 바로 갱신되도록 함
+      await queryClient.refetchQueries({ queryKey: ['auth', 'user'] })
       router.push(safeRedirect)
       router.refresh()
     } else {
