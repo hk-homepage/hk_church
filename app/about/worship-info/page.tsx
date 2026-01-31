@@ -19,7 +19,7 @@ const regularWorshipData = [
 
 const sundaySchoolRows = [
   { division: "유치부", time: "주일 오전 11:00", place: "/", image: "/children.png" },
-  { division: "초등부", time: "주일 오전 11:00", place: "/", image: "/children.png" },
+  { division: "초등부", time: "주일 오전 11:00", place: "/", image: "/elementary.png" },
   { division: "중고등부", time: "주일 오전 11:00", place: "/", image: "/middle-high.png" },
   { division: "청년부", time: "주일 오후 01:30", place: "/", image: "/youth.png" },
 ]

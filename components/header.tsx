@@ -54,8 +54,6 @@ const menuItems = [
     defaultHref: "/nurturing/education", // 메뉴 클릭 시 교회교육으로 이동
     submenu: [
       { title: "교회교육", href: "/nurturing/education" },
-      { title: "2025년 암송구절", href: "/nurturing/memory-verse-2025" },
-      { title: "성경통신문제", href: "/nurturing/bible-study" },
       { title: "오늘의 묵상", href: "https://www.qtland.com/quiet/quiet.php?cate=A" },
     ],
   },
@@ -222,7 +220,8 @@ export function Header() {
           )}
         </div>
 
-        {/* Mobile Menu */}
+        {/* Mobile Menu - Sheet only after mount to avoid Radix ID hydration mismatch */}
+        {isMounted ? (
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
           <SheetTrigger asChild className="lg:hidden">
             <Button variant="ghost" size="icon">
@@ -316,6 +315,11 @@ export function Header() {
             </div>
           </SheetContent>
         </Sheet>
+        ) : (
+          <Button variant="ghost" size="icon" className="lg:hidden" aria-label="메뉴 열기">
+            <Menu className="h-6 w-6" />
+          </Button>
+        )}
       </div>
     </header>
   )

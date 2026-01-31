@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from "react"
 import Image from "next/image"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight, Play } from "lucide-react"
 import { getActiveHeroSlides, type HeroSlide } from "@/app/actions/hero-slides"
@@ -115,8 +116,8 @@ export function HeroSection() {
                 <a href={slides[currentSlide].cta_link!}>{slides[currentSlide].cta_text}</a>
               </Button>
             ) : (
-              <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90">
-                교회 알아보기
+              <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90" asChild>
+                <Link href="/about/greeting">교회 알아보기</Link>
               </Button>
             )}
             <Button
