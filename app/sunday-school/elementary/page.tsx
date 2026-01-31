@@ -22,7 +22,7 @@ export default function ElementaryPage() {
       <SundaySchoolHeroSection
         title="초등부"
         description={intro}
-        imageUrl="/elementary-school-children-sunday-school-korean.jpg"
+        imageUrl="/elementary.png"
         imageAlt="초등부"
       />
       <SundaySchoolInfoSection items={infoItems} />

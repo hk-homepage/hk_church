@@ -1,4 +1,7 @@
+// Staff page - introduces pastors and ministers serving the church
 import Image from "next/image"
+import Link from "next/link"
+import { Mail, Phone } from "lucide-react"
 import { PageHeader } from "@/components/page-header"
 import { Card, CardContent } from "@/components/ui/card"
 
@@ -7,25 +10,28 @@ export const metadata = {
   description: "혜광교회를 섬기는 분들을 소개합니다",
 }
 
-const pastors = [
+interface StaffMember {
+  name: string
+  role: string
+  image: string
+  email?: string
+  phone?: string
+}
+
+const staff: StaffMember[] = [
+  { name: "정문용", role: "원로목사", image: "/emeritus-pastor.jpg" },
   {
-    name: "담임목사",
+    name: "이종흠",
     role: "담임목사",
-    image: "/korean-pastor-portrait.jpg",
-    description: "설교, 목회 총괄",
+    image: "/senior-pastor.jpg",
+    email: "ihkchurch@naver.com",
+    phone: "032-326-1550",
   },
-]
-
-const elders = [
-  { name: "장로1", role: "시무장로" },
-  { name: "장로2", role: "시무장로" },
-  { name: "장로3", role: "시무장로" },
-]
-
-const deacons = [
-  { name: "권사1", role: "권사" },
-  { name: "권사2", role: "권사" },
-  { name: "권사3", role: "권사" },
+  { name: "류승철", role: "목사", image: "/ryu-pastor.jpg", email: "rsch22@naver.com" },
+  { name: "윤상현", role: "목사", image: "/yun-pastor.jpg", email: "best926805@naver.com" },
+  { name: "이한솔", role: "전도사", image: "/lee-minister.jpg", email: "leehansol04050925@gmail.com" },
+  { name: "박영미", role: "전도사", image: "/bark-minister.jpg", email: "pym42086@naver.com" },
+  { name: "이은순", role: "전도사", image: "/lee2-minister.jpeg", email: "lovemelissa@hanmail.net" },
 ]
 
 export default function StaffPage() {
@@ -39,49 +45,42 @@ export default function StaffPage() {
       <section className="py-16">
         <div className="container mx-auto px-4">
           <div className="mx-auto max-w-5xl">
-            {/* 목사 */}
-            <div className="mb-16">
-              <h2 className="mb-8 text-center text-2xl font-bold text-foreground">목사</h2>
-              <div className="flex justify-center">
-                {pastors.map((pastor) => (
-                  <Card key={pastor.name} className="max-w-sm overflow-hidden">
-                    <div className="relative aspect-square">
-                      <Image src={pastor.image || "/placeholder.svg"} alt={pastor.name} fill className="object-cover" />
-                    </div>
-                    <CardContent className="p-6 text-center">
-                      <h3 className="text-xl font-bold text-foreground">{pastor.name}</h3>
-                      <p className="text-primary font-medium">{pastor.role}</p>
-                      <p className="mt-2 text-sm text-muted-foreground">{pastor.description}</p>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </div>
-
-            {/* 장로 */}
-            <div className="mb-16">
-              <h2 className="mb-8 text-center text-2xl font-bold text-foreground">장로</h2>
-              <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
-                {elders.map((elder) => (
-                  <Card key={elder.name} className="p-6 text-center">
-                    <h3 className="text-lg font-semibold text-foreground">{elder.name}</h3>
-                    <p className="text-sm text-muted-foreground">{elder.role}</p>
-                  </Card>
-                ))}
-              </div>
-            </div>
-
-            {/* 권사 */}
-            <div>
-              <h2 className="mb-8 text-center text-2xl font-bold text-foreground">권사</h2>
-              <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
-                {deacons.map((deacon) => (
-                  <Card key={deacon.name} className="p-6 text-center">
-                    <h3 className="text-lg font-semibold text-foreground">{deacon.name}</h3>
-                    <p className="text-sm text-muted-foreground">{deacon.role}</p>
-                  </Card>
-                ))}
-              </div>
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {staff.map((person) => (
+                <Card key={`${person.name}-${person.role}`} className="overflow-hidden">
+                  <div className="relative aspect-square">
+                    <Image
+                      src={person.image}
+                      alt={person.name}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
+                    />
+                  </div>
+                  <CardContent className="p-4 text-center">
+                    <h3 className="text-lg font-bold text-foreground">{person.name}</h3>
+                    <p className="text-sm font-medium text-primary">{person.role}</p>
+                    {person.phone && (
+                      <a
+                        href={`tel:${person.phone.replace(/-/g, "")}`}
+                        className="mt-2 flex items-center justify-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+                      >
+                        <Phone className="h-3.5 w-3.5 shrink-0" />
+                        <span>{person.phone}</span>
+                      </a>
+                    )}
+                    {person.email && (
+                      <Link
+                        href={`mailto:${person.email}`}
+                        className="mt-1 flex items-center justify-center gap-1.5 break-all text-sm text-muted-foreground hover:text-foreground"
+                      >
+                        <Mail className="h-3.5 w-3.5 shrink-0" />
+                        <span>{person.email}</span>
+                      </Link>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           </div>
         </div>
