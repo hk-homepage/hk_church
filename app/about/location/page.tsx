@@ -58,7 +58,7 @@ export default function LocationPage() {
                     <Train className="mt-1 h-5 w-5 text-primary" />
                     <div>
                       <p className="font-medium text-foreground">지하철</p>
-                      <p className="text-muted-foreground">7호선 춘의역 3번 출구에서 도보 10분</p>
+                      <p className="text-muted-foreground">1호선 부개역 2번 출구에서 도보 10분</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
