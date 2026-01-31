@@ -12,12 +12,12 @@ export function LiveWorshipSection() {
           <div className="order-2 lg:order-1">
             <div className="relative aspect-video overflow-hidden rounded-2xl bg-foreground/10 shadow-2xl">
               <iframe
-                src="https://www.youtube.com/embed/BXLnanlZAiM"
-                title="혜광교회 온라인 예배"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                className="absolute inset-0 h-full w-full"
-              />
+                    src="https://www.youtube.com/embed/live_stream?channel=UC1Qfj0Hpx5pc-g9S5LAh7KA"
+                    title="혜광교회 온라인 예배"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className="absolute inset-0 h-full w-full"
+                  />
             </div>
           </div>
 

@@ -1,42 +1,48 @@
-import Image from "next/image"
+import Link from "next/link"
 import { PageHeader } from "@/components/page-header"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { BulletinGrid } from "@/components/bulletin-grid"
 import { Button } from "@/components/ui/button"
-import { Download, Calendar } from "lucide-react"
+import { Plus } from "lucide-react"
+import { getBulletins } from "@/app/actions/bulletins"
+import { getCurrentUser } from "@/app/actions/auth"
+import { isAdmin } from "@/lib/utils/permissions"
 
 export const metadata = {
   title: "주보 | 혜광교회",
-  description: "혜광교회 주보",
+  description: "매주 발행되는 교회 주보입니다",
 }
 
-const bulletins = [
-  {
-    id: 1,
-    date: "2025년 1월 5일",
-    title: "신년 감사예배",
-    image: "/church-bulletin-korean.jpg",
-  },
-  {
-    id: 2,
-    date: "2024년 12월 29일",
-    title: "송년감사예배",
-    image: "/church-bulletin-christmas.jpg",
-  },
-  {
-    id: 3,
-    date: "2024년 12월 22일",
-    title: "성탄절 예배",
-    image: "/church-bulletin-christmas-service.jpg",
-  },
-  {
-    id: 4,
-    date: "2024년 12월 15일",
-    title: "대림절 3주",
-    image: "/church-bulletin-advent.jpg",
-  },
-]
+export default async function BulletinPage() {
+  const user = await getCurrentUser()
+  const canCreate = isAdmin(user)
+  const result = await getBulletins(100)
+  
+  // 데이터베이스에서 가져온 주보를 컴포넌트 형식에 맞게 변환
+  const bulletins = result.bulletins.map((bulletin) => {
+    // bulletin_date를 "YYYY년 MM월 DD일" 형식으로 변환 (타임존 안전)
+    let formattedDate = ''
+    if (bulletin.bulletin_date) {
+      // ISO 날짜 문자열을 안전하게 파싱
+      const dateStr = bulletin.bulletin_date.includes('T') 
+        ? bulletin.bulletin_date.split('T')[0] 
+        : bulletin.bulletin_date
+      const [year, month, day] = dateStr.split('-')
+      if (year && month && day) {
+        formattedDate = `${year}년 ${month.padStart(2, '0')}월 ${day.padStart(2, '0')}일`
+      }
+    }
+    
+    // ID는 문자열 그대로 사용
+    return {
+      id: bulletin.id,
+      date: formattedDate,
+      title: bulletin.title,
+      image: bulletin.cover_image_url || bulletin.pdf_url || "/placeholder.svg",
+      pdfUrl: bulletin.pdf_url || undefined,
+      imageUrl: bulletin.cover_image_url || undefined,
+    }
+  })
 
-export default function BulletinPage() {
   return (
     <>
       <PageHeader
@@ -47,33 +53,23 @@ export default function BulletinPage() {
       <section className="py-16">
         <div className="container mx-auto px-4">
           <div className="mx-auto max-w-5xl">
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              {bulletins.map((bulletin) => (
-                <Card key={bulletin.id} className="overflow-hidden transition-shadow hover:shadow-lg">
-                  <div className="relative aspect-[3/4]">
-                    <Image
-                      src={bulletin.image || "/placeholder.svg"}
-                      alt={bulletin.title}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-                  <CardHeader className="pb-2">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Calendar className="h-4 w-4" />
-                      {bulletin.date}
-                    </div>
-                    <CardTitle className="text-base">{bulletin.title}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <Button variant="outline" size="sm" className="w-full bg-transparent">
-                      <Download className="mr-2 h-4 w-4" />
-                      다운로드
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+            {canCreate && (
+              <div className="mb-6 flex justify-end">
+                <Button asChild>
+                  <Link href="/news/bulletin/new">
+                    <Plus className="mr-2 h-4 w-4" />
+                    주보 작성
+                  </Link>
+                </Button>
+              </div>
+            )}
+            {result.success && bulletins.length > 0 ? (
+              <BulletinGrid bulletins={bulletins} canDelete={canCreate} />
+            ) : (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">등록된 주보가 없습니다.</p>
+              </div>
+            )}
           </div>
         </div>
       </section>

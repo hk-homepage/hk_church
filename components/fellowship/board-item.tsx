@@ -1,23 +1,23 @@
 // Single post row in board list
 import Link from 'next/link'
-import { formatDistanceToNow } from 'date-fns'
+import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { Eye, Paperclip, Pin } from 'lucide-react'
-import type { FellowshipPostListItem, BoardCategory } from '@/types/fellowship'
+import type { FellowshipPostListItem, BoardCategory } from '@/types/posts'
 import { getBoardRoute } from '@/lib/constants/fellowship'
 
 interface BoardItemProps {
     post: FellowshipPostListItem
     category: BoardCategory
-    index: number
+    displayNo: number
 }
 
-export function BoardItem({ post, category, index }: BoardItemProps) {
+export function BoardItem({ post, category, displayNo }: BoardItemProps) {
     const boardRoute = getBoardRoute(category)
     const postUrl = `${boardRoute}/${post.id}`
 
-    const formattedDate = formatDistanceToNow(new Date(post.created_at), {
-        addSuffix: true,
+    // 고정된 날짜 형식 사용 (hydration 오류 방지)
+    const formattedDate = format(new Date(post.created_at), 'yyyy.MM.dd', {
         locale: ko,
     })
 
@@ -37,7 +37,7 @@ export function BoardItem({ post, category, index }: BoardItemProps) {
                             <Pin className="w-4 h-4 text-blue-600 dark:text-blue-400 mx-auto" />
                         ) : (
                             <span className="text-sm text-gray-500 dark:text-gray-400">
-                                {index + 1}
+                                {displayNo}
                             </span>
                         )}
                     </div>

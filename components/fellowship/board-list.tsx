@@ -1,5 +1,5 @@
 // Table of fellowship posts with header row
-import type { FellowshipPostListItem, BoardCategory } from '@/types/fellowship'
+import type { FellowshipPostListItem, BoardCategory } from '@/types/posts'
 import { BoardItem } from './board-item'
 
 interface BoardListProps {
@@ -7,13 +7,15 @@ interface BoardListProps {
     category: BoardCategory
     currentPage?: number
     postsPerPage?: number
+    totalCount?: number
 }
 
 export function BoardList({
     posts,
     category,
     currentPage = 1,
-    postsPerPage = 15
+    postsPerPage = 15,
+    totalCount = 0
 }: BoardListProps) {
     if (posts.length === 0) {
         return (
@@ -36,18 +38,18 @@ export function BoardList({
                 </div>
             </div>
 
-            {/* 게시글 목록 */}
+            {/* 게시글 목록 - 최신순 표시, 번호는 먼저 쓴 글이 1번이 되도록 역순 */}
             <div>
                 {posts.map((post, index) => {
-                    // 페이지네이션을 고려한 실제 번호 계산
                     const actualIndex = (currentPage - 1) * postsPerPage + index
+                    const displayNo = totalCount > 0 ? totalCount - actualIndex : index + 1
 
                     return (
                         <BoardItem
                             key={post.id}
                             post={post}
                             category={category}
-                            index={actualIndex}
+                            displayNo={displayNo}
                         />
                     )
                 })}

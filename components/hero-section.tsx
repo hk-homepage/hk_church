@@ -3,27 +3,30 @@
 
 import { useState, useEffect } from "react"
 import Image from "next/image"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight, Play } from "lucide-react"
+import { getActiveHeroSlides, type HeroSlide } from "@/app/actions/hero-slides"
 
-const slides = [
+// Fallback slides if no data from database
+const fallbackSlides = [
   {
-    id: 1,
-    image: "/beautiful-church-interior-with-sunlight-streaming-.jpg",
+    id: "fallback-1",
+    image_url: "/beautiful-church-interior-with-sunlight-streaming-.jpg",
     title: "다음세대가 춤추는 교회",
     subtitle: "마태복음 11:16-17",
     description: "혜광교회에 오신 것을 환영합니다",
   },
   {
-    id: 2,
-    image: "/church-congregation-worshipping-together-with-rais.jpg",
+    id: "fallback-2",
+    image_url: "/church-congregation-worshipping-together-with-rais.jpg",
     title: "함께 예배하는 공동체",
     subtitle: "예배와 말씀 안에서",
     description: "하나님을 찬양하며 말씀으로 세워지는 교회",
   },
   {
-    id: 3,
-    image: "/church-community-gathering-fellowship-event-outdoo.jpg",
+    id: "fallback-3",
+    image_url: "/church-community-gathering-fellowship-event-outdoo.jpg",
     title: "사랑으로 섬기는 교회",
     subtitle: "이웃사랑 실천",
     description: "지역사회와 함께하는 혜광교회",
@@ -32,16 +35,41 @@ const slides = [
 
 export function HeroSection() {
   const [currentSlide, setCurrentSlide] = useState(0)
+  const [slides, setSlides] = useState<HeroSlide[]>([])
 
   useEffect(() => {
+    // Load slides from Supabase
+    getActiveHeroSlides().then((data) => {
+      if (data && data.length > 0) {
+        setSlides(data)
+      } else {
+        // Use fallback if no data
+        setSlides(fallbackSlides as HeroSlide[])
+      }
+    })
+  }, [])
+
+  useEffect(() => {
+    if (slides.length === 0) return
+    
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % slides.length)
     }, 6000)
     return () => clearInterval(timer)
-  }, [])
+  }, [slides.length])
 
   const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % slides.length)
   const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length)
+
+  if (slides.length === 0) {
+    return (
+      <section className="relative h-[70vh] min-h-[500px] w-full overflow-hidden bg-muted">
+        <div className="flex h-full items-center justify-center">
+          <p className="text-muted-foreground">배너를 불러오는 중...</p>
+        </div>
+      </section>
+    )
+  }
 
   return (
     <section className="relative h-[70vh] min-h-[500px] w-full overflow-hidden bg-muted">
@@ -53,7 +81,7 @@ export function HeroSection() {
           }`}
         >
           <Image
-            src={slide.image || "/placeholder.svg"}
+            src={slide.image_url || "/placeholder.svg"}
             alt={slide.title}
             fill
             className="object-cover"
@@ -65,24 +93,43 @@ export function HeroSection() {
 
       <div className="relative z-10 flex h-full items-center justify-center">
         <div className="container px-4 text-center">
-          <p className="mb-3 text-sm font-medium uppercase tracking-widest text-primary-foreground/80 md:text-base">
-            {slides[currentSlide].subtitle}
-          </p>
+          {slides[currentSlide].subtitle && (
+            <p className="mb-3 text-sm font-medium uppercase tracking-widest text-primary-foreground/80 md:text-base">
+              {slides[currentSlide].subtitle}
+            </p>
+          )}
           <h1 className="mb-4 text-balance text-4xl font-bold text-primary-foreground md:text-5xl lg:text-6xl">
             {slides[currentSlide].title}
           </h1>
-          <p className="mb-8 text-lg text-primary-foreground/90 md:text-xl">{slides[currentSlide].description}</p>
+          {slides[currentSlide].description && (
+            <p className="mb-8 text-lg text-primary-foreground/90 md:text-xl">
+              {slides[currentSlide].description}
+            </p>
+          )}
           <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90">
-              교회 알아보기
-            </Button>
+            {slides[currentSlide].cta_text && slides[currentSlide].cta_link ? (
+              <Button
+                size="lg"
+                className="bg-primary text-primary-foreground hover:bg-primary/90"
+                asChild
+              >
+                <a href={slides[currentSlide].cta_link!}>{slides[currentSlide].cta_text}</a>
+              </Button>
+            ) : (
+              <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90" asChild>
+                <Link href="/about/greeting">교회 알아보기</Link>
+              </Button>
+            )}
             <Button
               size="lg"
               variant="outline"
               className="border-primary-foreground/30 bg-transparent text-primary-foreground hover:bg-primary-foreground/10"
+              asChild
             >
-              <Play className="mr-2 h-4 w-4" />
-              온라인 예배
+              <a href="/worship/online">
+                <Play className="mr-2 h-4 w-4" />
+                온라인 예배
+              </a>
             </Button>
           </div>
         </div>

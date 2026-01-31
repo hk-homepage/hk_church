@@ -1,5 +1,5 @@
 // Board configuration constants for each fellowship category
-import type { BoardCategory, BoardConfig } from '@/types/fellowship'
+import type { BoardCategory, BoardConfig } from '@/types/posts'
 
 export const BOARD_CONFIGS: Record<BoardCategory, BoardConfig> = {
     grace: {

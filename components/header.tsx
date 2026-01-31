@@ -1,11 +1,14 @@
 // Main site header with navigation menu and mobile hamburger
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Menu, Church, User, Calendar, MessageSquare, LogIn } from "lucide-react"
+import { Menu, Church, User, Calendar, MessageSquare, LogIn, LogOut, Image } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { logoutAction } from "@/app/actions/auth"
+import { useAuth } from "@/hooks/useAuth"
+import { isAdmin } from "@/lib/utils/permissions"
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -51,9 +54,7 @@ const menuItems = [
     defaultHref: "/nurturing/education", // 메뉴 클릭 시 교회교육으로 이동
     submenu: [
       { title: "교회교육", href: "/nurturing/education" },
-      { title: "2025년 암송구절", href: "/nurturing/memory-verse-2025" },
-      { title: "성경통신문제", href: "/nurturing/bible-study" },
-      { title: "오늘의 묵상", href: "/nurturing/devotion" },
+      { title: "오늘의 묵상", href: "https://www.qtland.com/quiet/quiet.php?cate=A" },
     ],
   },
   {
@@ -63,8 +64,7 @@ const menuItems = [
     submenu: [
       { title: "공지사항", href: "/news/announcements" },
       { title: "주보", href: "/news/bulletin" },
-      { title: "새가족 소개", href: "/news/new-members" },
-      { title: "혜광 갤러리", href: "/gallery" },
+      { title: "혜광 갤러리", href: "/news/gallery" },
     ],
   },
   {
@@ -81,7 +81,20 @@ const menuItems = [
 
 export function Header() {
   const [isOpen, setIsOpen] = useState(false)
+  const [isMounted, setIsMounted] = useState(false)
+  const { user, isLoading } = useAuth()
   const router = useRouter()
+
+  // 클라이언트에서만 렌더링하도록 설정 (hydration 에러 방지)
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
+
+  const handleLogout = async () => {
+    await logoutAction()
+    // 페이지 새로고침
+    window.location.href = '/'
+  }
 
   const handleMenuClick = (href: string) => {
     router.push(href)
@@ -100,55 +113,70 @@ export function Header() {
         </Link>
 
         {/* Desktop Navigation */}
-        <NavigationMenu className="hidden lg:flex" viewport={false}>
-          <NavigationMenuList>
+        {isMounted ? (
+          <NavigationMenu className="hidden lg:flex" viewport={false}>
+            <NavigationMenuList>
+              {menuItems.map((item) => (
+                <NavigationMenuItem key={item.title}>
+                  {item.submenu ? (
+                    <>
+                      <NavigationMenuTrigger
+                        className="bg-transparent text-foreground hover:bg-accent"
+                        onClick={(e) => {
+                          // 드롭다운 아이콘 클릭이 아닌 경우에만 리다이렉트
+                          const target = e.target as HTMLElement
+                          if (!target.closest('svg')) {
+                            handleMenuClick(item.defaultHref || item.href)
+                          }
+                        }}
+                      >
+                        {item.title}
+                      </NavigationMenuTrigger>
+                      <NavigationMenuContent>
+                        <ul className="grid w-56 gap-1 p-2">
+                          {item.submenu.map((subItem) => (
+                            <li key={subItem.title}>
+                              <NavigationMenuLink asChild>
+                                <Link
+                                  href={subItem.href}
+                                  className="block select-none rounded-md p-3 text-sm leading-none text-foreground no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                                >
+                                  {subItem.title}
+                                </Link>
+                              </NavigationMenuLink>
+                            </li>
+                          ))}
+                        </ul>
+                      </NavigationMenuContent>
+                    </>
+                  ) : (
+                    <NavigationMenuLink asChild>
+                      <Link
+                        href={item.href}
+                        className="group inline-flex h-10 w-max items-center justify-center rounded-md bg-transparent px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none"
+                      >
+                        {item.title}
+                      </Link>
+                    </NavigationMenuLink>
+                  )}
+                </NavigationMenuItem>
+              ))}
+            </NavigationMenuList>
+          </NavigationMenu>
+        ) : (
+          // SSR 시 placeholder (hydration 에러 방지)
+          <nav className="hidden lg:flex items-center gap-4">
             {menuItems.map((item) => (
-              <NavigationMenuItem key={item.title}>
-                {item.submenu ? (
-                  <>
-                    <NavigationMenuTrigger
-                      className="bg-transparent text-foreground hover:bg-accent"
-                      onClick={(e) => {
-                        // 드롭다운 아이콘 클릭이 아닌 경우에만 리다이렉트
-                        const target = e.target as HTMLElement
-                        if (!target.closest('svg')) {
-                          handleMenuClick(item.defaultHref || item.href)
-                        }
-                      }}
-                    >
-                      {item.title}
-                    </NavigationMenuTrigger>
-                    <NavigationMenuContent>
-                      <ul className="grid w-56 gap-1 p-2">
-                        {item.submenu.map((subItem) => (
-                          <li key={subItem.title}>
-                            <NavigationMenuLink asChild>
-                              <Link
-                                href={subItem.href}
-                                className="block select-none rounded-md p-3 text-sm leading-none text-foreground no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                              >
-                                {subItem.title}
-                              </Link>
-                            </NavigationMenuLink>
-                          </li>
-                        ))}
-                      </ul>
-                    </NavigationMenuContent>
-                  </>
-                ) : (
-                  <NavigationMenuLink asChild>
-                    <Link
-                      href={item.href}
-                      className="group inline-flex h-10 w-max items-center justify-center rounded-md bg-transparent px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none"
-                    >
-                      {item.title}
-                    </Link>
-                  </NavigationMenuLink>
-                )}
-              </NavigationMenuItem>
+              <Link
+                key={item.title}
+                href={item.defaultHref || item.href}
+                className="text-sm font-medium text-foreground hover:text-accent-foreground"
+              >
+                {item.title}
+              </Link>
             ))}
-          </NavigationMenuList>
-        </NavigationMenu>
+          </nav>
+        )}
 
         {/* Desktop Actions */}
         <div className="hidden items-center gap-2 lg:flex">
@@ -164,15 +192,36 @@ export function Header() {
               카페
             </Link>
           </Button>
-          <Button variant="outline" size="sm" asChild>
-            <Link href="/login">
-              <LogIn className="mr-2 h-4 w-4" />
-              로그인
-            </Link>
-          </Button>
+          {!isLoading && (
+            user ? (
+              <>
+                {isAdmin(user) && (
+                  <Button variant="ghost" size="sm" className="text-foreground" asChild>
+                    <Link href="/admin/hero-slides">
+                      <Image className="mr-2 h-4 w-4" />
+                      배너 관리
+                    </Link>
+                  </Button>
+                )}
+                <span className="text-sm text-muted-foreground">{user.name || user.userId}님</span>
+                <Button variant="outline" size="sm" onClick={handleLogout}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  로그아웃
+                </Button>
+              </>
+            ) : (
+              <Button variant="outline" size="sm" asChild>
+                <Link href="/login">
+                  <LogIn className="mr-2 h-4 w-4" />
+                  로그인
+                </Link>
+              </Button>
+            )
+          )}
         </div>
 
-        {/* Mobile Menu */}
+        {/* Mobile Menu - Sheet only after mount to avoid Radix ID hydration mismatch */}
+        {isMounted ? (
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
           <SheetTrigger asChild className="lg:hidden">
             <Button variant="ghost" size="icon">
@@ -213,18 +262,49 @@ export function Header() {
               </Accordion>
 
               <div className="flex flex-col gap-2 border-t border-border pt-4">
-                <Button variant="outline" className="justify-start bg-transparent" asChild>
-                  <Link href="/login" onClick={() => setIsOpen(false)}>
-                    <LogIn className="mr-2 h-4 w-4" />
-                    로그인
-                  </Link>
-                </Button>
-                <Button variant="outline" className="justify-start bg-transparent" asChild>
-                  <Link href="/signup" onClick={() => setIsOpen(false)}>
-                    <User className="mr-2 h-4 w-4" />
-                    회원가입
-                  </Link>
-                </Button>
+                {!isLoading && (
+                  user ? (
+                    <>
+                      <div className="px-3 py-2 text-sm text-muted-foreground">
+                        {user.name || user.userId}님
+                      </div>
+                      {isAdmin(user) && (
+                        <Button variant="outline" className="justify-start bg-transparent" asChild>
+                          <Link href="/admin/hero-slides" onClick={() => setIsOpen(false)}>
+                            <Image className="mr-2 h-4 w-4" />
+                            배너 관리
+                          </Link>
+                        </Button>
+                      )}
+                      <Button 
+                        variant="outline" 
+                        className="justify-start bg-transparent" 
+                        onClick={async () => {
+                          await handleLogout()
+                          setIsOpen(false)
+                        }}
+                      >
+                        <LogOut className="mr-2 h-4 w-4" />
+                        로그아웃
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button variant="outline" className="justify-start bg-transparent" asChild>
+                        <Link href="/login" onClick={() => setIsOpen(false)}>
+                          <LogIn className="mr-2 h-4 w-4" />
+                          로그인
+                        </Link>
+                      </Button>
+                      <Button variant="outline" className="justify-start bg-transparent" asChild>
+                        <Link href="/signup" onClick={() => setIsOpen(false)}>
+                          <User className="mr-2 h-4 w-4" />
+                          회원가입
+                        </Link>
+                      </Button>
+                    </>
+                  )
+                )}
                 <Button variant="outline" className="justify-start bg-transparent" asChild>
                   <Link href="/calendar" onClick={() => setIsOpen(false)}>
                     <Calendar className="mr-2 h-4 w-4" />
@@ -235,6 +315,11 @@ export function Header() {
             </div>
           </SheetContent>
         </Sheet>
+        ) : (
+          <Button variant="ghost" size="icon" className="lg:hidden" aria-label="메뉴 열기">
+            <Menu className="h-6 w-6" />
+          </Button>
+        )}
       </div>
     </header>
   )

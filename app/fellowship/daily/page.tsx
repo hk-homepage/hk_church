@@ -2,11 +2,13 @@ import type { Metadata } from 'next'
 import { BoardHeader } from '@/components/fellowship/board-header'
 import { BoardList } from '@/components/fellowship/board-list'
 import { BoardPagination } from '@/components/fellowship/board-pagination'
-import { generateMockPosts } from '@/lib/mock/fellowship-data'
+import { getFellowshipPosts } from '@/app/actions/posts'
 import { getBoardConfig } from '@/lib/constants/fellowship'
-import type { PaginationInfo } from '@/types/fellowship'
+import { convertToFellowshipPostListItem } from '@/types/posts'
+import type { PaginationInfo } from '@/types/posts'
 
 const CATEGORY = 'daily' as const
+const BASE_URL = '/fellowship/daily'
 
 export const metadata: Metadata = {
   title: '일상 나눔 | 혜광교회',
@@ -23,36 +25,41 @@ export default async function DailyPage({ searchParams }: PageProps) {
   const currentPage = Number(params.page) || 1
   const postsPerPage = config.postsPerPage
 
-  // Mock 데이터 가져오기 (실제로는 Supabase에서 가져옴)
-  const allPosts = generateMockPosts(CATEGORY, 100)
+  const result = await getFellowshipPosts(CATEGORY, currentPage, postsPerPage)
 
-  // 페이지네이션 적용
-  const startIndex = (currentPage - 1) * postsPerPage
-  const endIndex = startIndex + postsPerPage
-  const posts = allPosts.slice(startIndex, endIndex)
+  if (!result.success) {
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-5xl">
+        <p className="text-destructive">{result.error ?? '게시글을 불러오는데 실패했습니다.'}</p>
+      </div>
+    )
+  }
 
-  // 페이지네이션 정보
+  const posts = result.posts.map(convertToFellowshipPostListItem)
+  const totalCount = result.total
+
   const pagination: PaginationInfo = {
     currentPage,
-    totalPages: Math.ceil(allPosts.length / postsPerPage),
-    totalCount: allPosts.length,
+    totalPages: Math.ceil(totalCount / postsPerPage) || 1,
+    totalCount,
     pageSize: postsPerPage,
-    hasNext: endIndex < allPosts.length,
+    hasNext: currentPage * postsPerPage < totalCount,
     hasPrev: currentPage > 1,
   }
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-5xl">
-      <BoardHeader category={CATEGORY} totalCount={allPosts.length} />
+      <BoardHeader category={CATEGORY} totalCount={totalCount} baseUrl={BASE_URL} />
       <BoardList
         posts={posts}
         category={CATEGORY}
         currentPage={currentPage}
         postsPerPage={postsPerPage}
+        totalCount={totalCount}
       />
       <BoardPagination
         pagination={pagination}
-        baseUrl="/fellowship/daily"
+        baseUrl={BASE_URL}
       />
     </div>
   )
