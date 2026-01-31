@@ -8,12 +8,12 @@ import "./globals.css"
 const _geist = Geist({ subsets: ["latin"] })
 const _geistMono = Geist_Mono({ subsets: ["latin"] })
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://hyegwang.org"
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://hkchurch.vercel.app"
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: "(부천)혜광교회 | Hyegwang Church",
-  description: "다음세대가 춤추는 교회, 부천 혜광교회입니다. 하나님의 사랑으로 모든 분들을 환영합니다.",
+  description: "형제를 내 몸같이 사랑하는 교회, 부천 혜광교회입니다.",
   keywords: ["혜광교회", "부천교회", "교회", "Hyegwang Church", "부천시 원미구"],
   authors: [{ name: "혜광교회" }],
   openGraph: {
@@ -32,9 +32,9 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [{ url: "/favicon-church.png", sizes: "any" }],
-    apple: "/apple-icon.png",
+    apple: "/favicon-church.png",
   },
-    generator: 'v0.app'
+  generator: "v0.app",
 }
 
 export default function RootLayout({
