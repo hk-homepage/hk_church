@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     type: "website",
     locale: "ko_KR",
     siteName: "혜광교회",
-    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "혜광교회" }],
+    images: [{ url: "/intro.jpg", width: 1200, height: 630, alt: "혜광교회" }],
   },
   twitter: {
     card: "summary_large_image",
@@ -31,21 +31,7 @@ export const metadata: Metadata = {
     images: ["/intro.jpg"],
   },
   icons: {
-    icon: [
-      { url: "/favicon-church.png", sizes: "any" },
-      {
-        url: "/icon-light-32x32.png",
-        media: "(prefers-color-scheme: light)",
-      },
-      {
-        url: "/icon-dark-32x32.png",
-        media: "(prefers-color-scheme: dark)",
-      },
-      {
-        url: "/icon.svg",
-        type: "image/svg+xml",
-      },
-    ],
+    icon: [{ url: "/favicon-church.png", sizes: "any" }],
     apple: "/apple-icon.png",
   },
     generator: 'v0.app'
