@@ -1,40 +1,23 @@
-import { PageHeader } from "@/components/page-header"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { BookOpen, Users, Calendar, Award } from "lucide-react"
+import Link from 'next/link'
+import { PageHeader } from '@/components/page-header'
+import { Button } from '@/components/ui/button'
+import { getEducationPrograms } from '@/app/actions/education'
+import { getCurrentUser } from '@/app/actions/auth'
+import { isAdmin } from '@/lib/utils/permissions'
+import { EducationProgramList } from '@/components/education-program-list'
 
 export const metadata = {
   title: "교회교육 | 혜광교회",
   description: "혜광교회 교회교육 프로그램 안내",
 }
 
-const programs = [
-  {
-    icon: BookOpen,
-    title: "새가족 교육",
-    description: "새가족을 위한 4주 과정의 기초 신앙 교육",
-    schedule: "매월 첫째 주일 시작",
-  },
-  {
-    icon: Users,
-    title: "제자훈련",
-    description: "성숙한 그리스도인으로 성장하기 위한 제자훈련 과정",
-    schedule: "연 2회 (상반기/하반기)",
-  },
-  {
-    icon: Calendar,
-    title: "성경통독",
-    description: "1년에 성경 전체를 읽는 성경통독 프로그램",
-    schedule: "매년 1월 시작",
-  },
-  {
-    icon: Award,
-    title: "교사교육",
-    description: "교회학교 교사를 위한 교육 프로그램",
-    schedule: "분기별 진행",
-  },
-]
+export default async function EducationPage() {
+  const [programs, user] = await Promise.all([
+    getEducationPrograms(),
+    getCurrentUser(),
+  ])
+  const canEdit = user !== null && isAdmin(user)
 
-export default function EducationPage() {
   return (
     <>
       <PageHeader
@@ -45,20 +28,30 @@ export default function EducationPage() {
       <section className="py-16">
         <div className="container mx-auto px-4">
           <div className="mx-auto max-w-5xl">
-            <div className="grid gap-6 md:grid-cols-2">
-              {programs.map((program) => (
-                <Card key={program.title} className="transition-shadow hover:shadow-lg">
-                  <CardHeader>
-                    <program.icon className="mb-2 h-10 w-10 text-primary" />
-                    <CardTitle>{program.title}</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    <p className="text-muted-foreground">{program.description}</p>
-                    <p className="text-sm text-primary font-medium">{program.schedule}</p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+            {canEdit && (
+              <div className="mb-6 flex flex-col items-end gap-1">
+                <Button asChild>
+                  <Link href="/nurturing/education/new">프로그램 추가</Link>
+                </Button>
+                {programs.length > 1 && (
+                  <p className="text-xs text-muted-foreground">카드를 드래그하여 표시 순서를 변경할 수 있습니다.</p>
+                )}
+              </div>
+            )}
+            {programs.length === 0 ? (
+              <div className="rounded-lg border border-dashed border-muted-foreground/25 bg-muted/30 py-16 text-center text-muted-foreground">
+                등록된 교육 프로그램이 없습니다.
+                {canEdit && (
+                  <div className="mt-4">
+                    <Button asChild variant="outline">
+                      <Link href="/nurturing/education/new">첫 프로그램 추가</Link>
+                    </Button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <EducationProgramList programs={programs} canEdit={canEdit} />
+            )}
           </div>
         </div>
       </section>
