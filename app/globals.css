@@ -150,3 +150,13 @@ html {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--foreground);
 }
+
+/* History timeline scroll animation */
+.history-timeline-item {
+  opacity: 0;
+  transform: translateX(-20px);
+}
+.history-timeline-item.history-timeline-item-visible {
+  opacity: 1;
+  transform: translateX(0);
+}
